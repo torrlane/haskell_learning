@@ -1,15 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where 
-import Test.Framework
-import Test.Framework.Providers.HUnit
-import Test.HUnit
-import qualified Data.Text.Lazy.Encoding as T
-import qualified Data.Text.Lazy as L
+import Test.Framework (defaultMainWithOpts, defaultMain)
+import Test.Framework.Providers.HUnit (testCase)
+import Test.HUnit (assertEqual)
+import qualified Data.Text.Lazy.Encoding as E (encodeUtf8)
+import qualified Data.Text.Lazy as L (pack)
 import Data.Aeson.Types (parseMaybe)
 import Data.Aeson (decode)
 import Data.Time.Calendar (fromGregorian)
 import Lib (Valuation(..), parseJSON)
+import qualified AltLib as A (Dividend(..), Transaction(..), Holding(..), dividends_paid_upto, parseHolding) 
 
+{- multiline strings -}
 json1 = "{\n\
         \   \"dataset_data\":\n\
         \   {\n\
@@ -40,11 +42,32 @@ test2 = assertEqual "dates equal?" (Just now) $ valued_on <$> (parse json2)
 now = fromGregorian 2016 10 05 
 
 
+{- 
+ - L.pack convert the String into a Text 
+ - E.encodeUtf8 converts the Text into a utf8 encoded ByteString
+ - decode takes a ByteString and returns Maybe Value 
+ - parseJSON takes a Value and returns a Parser Valuation (by type inference from the signature)
+ - parseMaybe takes a function from a -> Parser b, an instance of a and returns Maybe b
+ -
+ - decode :: FromJSON a => ByteString -> Maybe Value(a)
+ - parseMaybe :: (Value(a) -> Parser b) -> Value(a) -> Maybe b
+ - parseJSON :: Value -> Parser a
+ -}
 parse :: String -> Maybe Valuation
-parse s = parseMaybe parseJSON =<< decode (T.encodeUtf8 (L.pack s))
+parse s = parseMaybe parseJSON =<< decode (E.encodeUtf8 (L.pack s))
 
 
+test_empty_dividend_calculation = assertEqual "fail dividend" 0 $ A.dividends_paid_upto now [] []
+
+test_dividend_calculation = assertEqual "fail dividend" 80 $ A.dividends_paid_upto now [A.Dividend{A.paid_on=now, A.amount=10}] [A.Transaction{A.transaction_date=now,A.shares_bought=8,A.cost=8}]
+
+
+test_parseHolding = assertEqual "failed to parseLine " A.Holding{A.share="TSCO", A.transactions=[], A.dividends=[]} $ A.parseHolding "Holding{share=\"TSCO\", transactions=[], dividends=[]}"
 
 main :: IO ()
-main = defaultMainWithOpts
-        [testCase "test1" test1, testCase "test2" test2] mempty
+main = defaultMain
+        [testCase "test1" test1, 
+        testCase "test2" test2, 
+        testCase "test4" test_empty_dividend_calculation, 
+        testCase "test5" test_dividend_calculation,
+        testCase "test6" test_parseHolding]

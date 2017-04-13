@@ -73,8 +73,4 @@ purchase number of shares, cost, date
 valuation share, value, date
 income date paid, amount.
 
-
-
-
-
 -}

@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib,AltLib
+  exposed-modules:     Lib,AltLib,ParseDividends
   build-depends:       base >= 4.7 && < 5
                      , time 
                      , wreq
@@ -27,6 +27,9 @@ library
                      , containers
                      , unordered-containers
                      , vector
+                     , split
+                     , cassava
+                     , either
   default-language:    Haskell2010
 
 executable learning-exe
@@ -34,6 +37,18 @@ executable learning-exe
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
+                     , cassava
+                     , learning
+  default-language:    Haskell2010
+
+executable parse-dividends-exe
+  hs-source-dirs:      app
+  main-is:             ParseDividendsMain.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -main-is ParseDividendsMain
+  build-depends:       base
+                     , directory
+                     , filepath
+                     , cassava
                      , learning
   default-language:    Haskell2010
 
@@ -45,6 +60,9 @@ test-suite learning-test
                      , aeson
                      , text
                      , time
+                     , cassava
+                     , either
+                     , bytestring
                      , test-framework
                      , test-framework-hunit
                      , HUnit

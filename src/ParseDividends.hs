@@ -37,23 +37,17 @@ parseDate :: String -> Day
 parseDate s = parseTimeOrError True defaultTimeLocale "%d/%m/%Y" s :: Day
 
 {- Removes the header section from the transactions csv file, returning just the csv lines -}
-removeTransactionHeader :: String -> B.ByteString
-removeTransactionHeader = toLazyByteString . stringUtf8 . unlines . (drop 9) . lines
-
-removeDividendHeader :: String -> B.ByteString
-removeDividendHeader = toLazyByteString . stringUtf8 . unlines . (drop 9) . lines
-
-decodeTransactions :: String -> Either String (Vector Transaction)
-decodeTransactions str = decode NoHeader (removeTransactionHeader str) :: Either String (Vector Transaction)
+removeCsvHeader :: String -> B.ByteString
+removeCsvHeader = toLazyByteString . stringUtf8 . unlines . (drop 9) . lines
 
 parseTransactions :: String -> [Transaction]
-parseTransactions str =  toList $ fromRight empty $ decodeTransactions str
+parseTransactions str =  toList $ fromRight empty $ decodeCsv str
 
-decodeDividends :: String -> Either String (Vector Dividend)
-decodeDividends str = decode NoHeader (removeDividendHeader str) :: Either String (Vector Dividend)
+decodeCsv :: FromRecord a => String -> Either String (Vector a)
+decodeCsv str = decode NoHeader (removeCsvHeader str) 
 
 parseDividends :: String -> [Dividend]
-parseDividends str = toList $ fromRight empty $ decodeDividends str
+parseDividends str = toList $ fromRight empty $ decodeCsv str
 
 
 {- the round is to convert from a Double i.e "123.00" to an Integer. Unfortunately, to get it to work, it needs to cast the input to a Double.

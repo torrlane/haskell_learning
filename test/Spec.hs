@@ -8,7 +8,7 @@ import qualified Data.Text.Lazy as L (pack)
 import Data.Aeson.Types (parseMaybe)
 import Data.Aeson (decode)
 import Data.Time.Calendar (fromGregorian)
-import Data.Csv (Parser(..), record, parseRecord, runParser)
+import Data.Csv (Parser(..), FromRecord(..), record, parseRecord, runParser)
 import Data.ByteString as B
 import Data.ByteString.Lazy as LZ 
 import Data.ByteString.Builder (toLazyByteString, stringUtf8)
@@ -76,25 +76,12 @@ test_get_share2 = assertEqual "unlucky!" (Just "Royal Dutch Shell Plc A Shares")
 
 test_get_share3 = assertEqual "" (Just "Biotech Growth Trust (The)") $ getShareName "Security movements for:, Biotech Growth Trust (The), Ordinary 25p , , ,"
 
-test_parse_transaction = assertEqual "" (Transaction {transaction_date=fromGregorian 2016 12 07, shares_bought=1, cost=11}) testTransaction
+test_parse_transaction = assertEqual "" Transaction {transaction_date=fromGregorian 2016 12 07, shares_bought=1, cost=11} $ runParseRecordTest ["07/12/2016", "_", "_", "_", "1.00", "11"] 
 
-test_parse_dividend = assertEqual "" (A.Dividend{A.paid_on=fromGregorian 2016 12 07, A.amount=28.9}) testDividend
+test_parse_dividend = assertEqual "" A.Dividend{A.paid_on=fromGregorian 2016 12 07, A.amount=28.9} $ runParseRecordTest ["07/12/2016","ST DIV","share name","n/a","80.00","23.12"]
 
-testDividend :: A.Dividend
-testDividend = fromRight' parseDividend
-parseDividend :: Either String A.Dividend
-parseDividend = runParser $ createDividendParser ["07/12/2016","ST DIV","share name","n/a","80.00","23.12"]
-createDividendParser :: [String] -> Parser A.Dividend
-createDividendParser xs = parseRecord $ record $ fmap toByteString xs
-
-testTransaction :: Transaction
-testTransaction = fromRight' parseTransaction 
-parseTransaction :: Either String Transaction
-parseTransaction = runParser $ createParser ["07/12/2016", "_", "_", "_", "1.00", "11"]
-
-
-createParser :: [String] -> Parser Transaction
-createParser xs = parseRecord $ record $ fmap toByteString xs
+runParseRecordTest :: FromRecord a => [String] -> a
+runParseRecordTest xs = fromRight' . runParser . parseRecord . record $ fmap toByteString xs
 
 lazyByteString :: String -> LZ.ByteString
 lazyByteString = toLazyByteString . stringUtf8 

@@ -2,7 +2,6 @@ module ParseDividends where
 import AltLib (Dividend(..))
 import Data.Char(isSpace)
 import Data.List (null, drop, stripPrefix, dropWhileEnd)
-import Data.List.Split (splitOn)
 import Data.Time.Calendar
 import Data.Time.Format (parseTimeOrError, defaultTimeLocale)
 import Data.Csv
@@ -22,22 +21,14 @@ getShareName s
     | otherwise     = Just $ shareName s
     where shareName  = stripWhitespace . (takeWhile (','/=)) . tail . (dropWhile (','/=) ) 
 
-removeHeader :: [String] -> [String]
-removeHeader = drop 9
+{- The zeroth field contains the date that the dividend was paid on, the 4th field the number of shares held, and the 5th field the total amount paid. We divide the total amount by the number of shares, to get a dividend amount per share (in pence, to 5 dp)
+ -}
+instance FromRecord Dividend where
+    parseRecord v
+            | length v >= 6 = Dividend <$> (parseDate <$> v .! 0) <*> ( to_five_dp . (100*) <$> ( (/) <$> (v .! 5 :: Parser Double) <*> (v .! 4 :: Parser Double)))
+            | otherwise     = mzero
 
--- takes a String and splits on commas
-splitIntoFields :: String -> [String]
-splitIntoFields s = splitOn "," s
 
-selectFields :: [String] -> [String]
-selectFields xs = [xs!!0, xs!!4, xs!!5]
-
-convertFieldsToDividend :: [String] -> Dividend
-convertFieldsToDividend xs = Dividend{paid_on=dividend_date, amount=dividend_amount}
-    where dividend_date = parseDate (xs!!0)
-          dividend_amount = to_five_dp $ 100 * (total_amount / num_shares)
-            where num_shares = read (xs!!1) :: Double
-                  total_amount = read (xs!!2) :: Double
 
 to_five_dp :: Double -> Double
 to_five_dp d = ((/100000) $ fromIntegral $ round (d * 100000))
@@ -49,11 +40,20 @@ parseDate s = parseTimeOrError True defaultTimeLocale "%d/%m/%Y" s :: Day
 removeTransactionHeader :: String -> B.ByteString
 removeTransactionHeader = toLazyByteString . stringUtf8 . unlines . (drop 9) . lines
 
+removeDividendHeader :: String -> B.ByteString
+removeDividendHeader = toLazyByteString . stringUtf8 . unlines . (drop 9) . lines
+
 decodeTransactions :: String -> Either String (Vector Transaction)
 decodeTransactions str = decode NoHeader (removeTransactionHeader str) :: Either String (Vector Transaction)
 
 parseTransactions :: String -> [Transaction]
 parseTransactions str =  toList $ fromRight empty $ decodeTransactions str
+
+decodeDividends :: String -> Either String (Vector Dividend)
+decodeDividends str = decode NoHeader (removeDividendHeader str) :: Either String (Vector Dividend)
+
+parseDividends :: String -> [Dividend]
+parseDividends str = toList $ fromRight empty $ decodeDividends str
 
 
 {- the round is to convert from a Double i.e "123.00" to an Integer. Unfortunately, to get it to work, it needs to cast the input to a Double.
@@ -62,7 +62,7 @@ parseTransactions str =  toList $ fromRight empty $ decodeTransactions str
  -}
 instance FromRecord Transaction where
     parseRecord v
-            | length v >= 6 = Transaction <$> (parseDate <$> v .! 0) <*> (round <$> (v .! 4 :: Parser Double) ) <*> v .! 5
+            | length v >= 6 = Transaction <$> (parseDate <$> v .! 0) <*> (round <$> (v .! 4 :: Parser Double) ) <*> v .! 5 
             | otherwise     = mzero
 
 

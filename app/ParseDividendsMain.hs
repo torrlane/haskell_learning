@@ -36,7 +36,6 @@ readTransactions :: FilePath -> FilePath -> IO()
 readTransactions folder fileName = do
     putStrLn $ "reading transaction data from " ++ fileName
     let fullFileName = combine folder fileName
-    putStrLn $ "full filepath : " ++ fullFileName
     handle <- openFile fullFileName ReadMode
     contents <- hGetContents handle  
     let contentLines = lines contents
@@ -48,11 +47,10 @@ readDividends :: FilePath -> FilePath -> IO()
 readDividends folder fileName = do
     putStrLn $ "reading dividend data from " ++ fileName
     let fullFileName = combine folder fileName
-    putStrLn $ "full filepath : " ++ fullFileName
     handle <- openFile fullFileName ReadMode
     contents <- hGetContents handle  
     let contentLines = lines contents
     printShareName $ getShareName . head $ contentLines
-    mapM_ putStrLn $ map (show . convertFieldsToDividend . selectFields . splitIntoFields) $ removeHeader contentLines
+    mapM_ putStrLn $ map show $ parseDividends contents
     hClose handle
 

@@ -70,12 +70,6 @@ test_dividend_calculation = assertEqual "fail dividend" 80 $ A.dividends_paid_up
 
 test_parseHolding = assertEqual "failed to parseLine " A.Holding{A.share="TSCO", A.transactions=[], A.dividends=[]} $ A.parseHolding "Holding{share=\"TSCO\", transactions=[], dividends=[]}"
 
-test_split = assertEqual "failed to split" ["1","2","3","4","5"] $ splitIntoFields "1,2,3,4,5"
-
-test_selectFields = assertEqual "incorrect fields" ["07/12/2016", "80.00", "23.12"] $ selectFields ["07/12/2016","ST DIV","Unilever plc Ord 3.11p (Dividend Payment)","n/a","80.00","23.12"]
-
-test_convertFields = assertEqual "bad conversion" A.Dividend{A.paid_on=fromGregorian 2016 12 07, A.amount=28.9} $ convertFieldsToDividend ["07/12/2016", "80", "23.12"]
-
 test_get_share1 = assertEqual "unlucky!" (Just "Henderson International Income Trust plc") $ getShareName "Income history for:, Henderson International Income Trust plc, Ord GBP0.01 , , ,"
 
 test_get_share2 = assertEqual "unlucky!" (Just "Royal Dutch Shell Plc A Shares") $ getShareName "Income history for:, Royal Dutch Shell Plc A Shares, EUR0.07 , , ,"
@@ -84,10 +78,20 @@ test_get_share3 = assertEqual "" (Just "Biotech Growth Trust (The)") $ getShareN
 
 test_parse_transaction = assertEqual "" (Transaction {transaction_date=fromGregorian 2016 12 07, shares_bought=1, cost=11}) testTransaction
 
+test_parse_dividend = assertEqual "" (A.Dividend{A.paid_on=fromGregorian 2016 12 07, A.amount=28.9}) testDividend
+
+testDividend :: A.Dividend
+testDividend = fromRight' parseDividend
+parseDividend :: Either String A.Dividend
+parseDividend = runParser $ createDividendParser ["07/12/2016","ST DIV","share name","n/a","80.00","23.12"]
+createDividendParser :: [String] -> Parser A.Dividend
+createDividendParser xs = parseRecord $ record $ fmap toByteString xs
+
 testTransaction :: Transaction
 testTransaction = fromRight' parseTransaction 
 parseTransaction :: Either String Transaction
 parseTransaction = runParser $ createParser ["07/12/2016", "_", "_", "_", "1.00", "11"]
+
 
 createParser :: [String] -> Parser Transaction
 createParser xs = parseRecord $ record $ fmap toByteString xs
@@ -106,10 +110,9 @@ main = defaultMain
         testCase "test4" test_empty_dividend_calculation, 
         testCase "test5" test_dividend_calculation,
         testCase "test6" test_parseHolding,
-        testCase "test_split" test_split,
-        testCase "test_conversion" test_convertFields,
         testCase "get_share1" test_get_share1,
         testCase "get_share2" test_get_share2,
         testCase "get_share3" test_get_share3,
-        testCase "test_parse_transaction" test_parse_transaction
+        testCase "test_parse_transaction" test_parse_transaction,
+        testCase "test_parse_dividend" test_parse_dividend
         ]

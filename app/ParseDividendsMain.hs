@@ -1,5 +1,6 @@
 module ParseDividendsMain where
 
+import Utils (stripWhitespace)
 import Data.List(lines, dropWhileEnd, dropWhile)
 import Data.Char(isSpace)
 import System.IO(putStrLn, openFile, IOMode(ReadMode), hClose, hSetBuffering, stdout, BufferMode(LineBuffering), hGetContents )

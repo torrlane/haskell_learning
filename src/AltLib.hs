@@ -50,4 +50,4 @@ number_held day ts = sum $ map calculateChangeToHolding ts
         | otherwise = shares_bought
         
 parseHolding :: String -> Holding
-parseHolding s = read s :: Holding 
+parseHolding s = read s :: Holding

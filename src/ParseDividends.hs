@@ -1,7 +1,7 @@
 module ParseDividends where
 import AltLib (Dividend(..))
-import Data.Char(isSpace)
-import Data.List (null, drop, stripPrefix, dropWhileEnd)
+import Utils (stripWhitespace, toLazyByteString)
+import Data.List (null, drop, stripPrefix)
 import Data.Time.Calendar
 import Data.Time.Format (parseTimeOrError, defaultTimeLocale)
 import Data.Csv
@@ -9,11 +9,7 @@ import Data.Either.Combinators (fromRight)
 import Control.Monad (mzero)
 import Data.Vector (Vector(..), toList, empty)
 import qualified Data.ByteString.Lazy as B
-import Data.ByteString.Builder (toLazyByteString, stringUtf8)
-import Data.Text.Encoding (encodeUtf8)
 
-stripWhitespace :: String -> String 
-stripWhitespace s = dropWhile isSpace $ dropWhileEnd isSpace s 
 
 getShareName :: String -> Maybe String
 getShareName s  
@@ -38,7 +34,7 @@ parseDate s = parseTimeOrError True defaultTimeLocale "%d/%m/%Y" s :: Day
 
 {- Removes the header section from the transactions csv file, returning just the csv lines -}
 removeCsvHeader :: String -> B.ByteString
-removeCsvHeader = toLazyByteString . stringUtf8 . unlines . (drop 9) . lines
+removeCsvHeader = toLazyByteString . unlines . (drop 9) . lines
 
 parseTransactions :: String -> [Transaction]
 parseTransactions str =  toList $ fromRight empty $ decodeCsv str

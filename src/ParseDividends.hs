@@ -3,7 +3,7 @@ module ParseDividends
     getShareName, parseDividends, parseTransactions
     )
 where
-import AltLib (Dividend(Dividend))
+import AltLib (Dividend(Dividend), Transaction(Transaction))
 import Utils (stripWhitespace, toLazyByteString, toFiveDp)
 import Data.List (null, drop, stripPrefix)
 import Data.Time.Calendar (Day)
@@ -59,4 +59,3 @@ instance FromRecord Transaction where
             | otherwise     = mzero
 
 
-data Transaction = Transaction{ transaction_date :: Day, shares_bought:: Int, cost :: Double } deriving (Read, Show, Eq)

@@ -1,14 +1,18 @@
-module ParseDividends where
-import AltLib (Dividend(..))
-import Utils (stripWhitespace, toLazyByteString)
+module ParseDividends 
+    (
+    getShareName, parseDividends, parseTransactions
+    )
+where
+import AltLib (Dividend(Dividend))
+import Utils (stripWhitespace, toLazyByteString, toFiveDp)
 import Data.List (null, drop, stripPrefix)
-import Data.Time.Calendar
+import Data.Time.Calendar (Day)
 import Data.Time.Format (parseTimeOrError, defaultTimeLocale)
-import Data.Csv
+import Data.Csv (FromRecord(parseRecord), Parser, Record, HasHeader(NoHeader), (.!), decode)
 import Data.Either.Combinators (fromRight)
 import Control.Monad (mzero)
-import Data.Vector (Vector(..), toList, empty)
-import qualified Data.ByteString.Lazy as B
+import Data.Vector (Vector, toList, empty )
+import qualified Data.ByteString.Lazy as B (ByteString)
 
 
 getShareName :: String -> Maybe String
@@ -21,13 +25,9 @@ getShareName s
  -}
 instance FromRecord Dividend where
     parseRecord v
-            | length v >= 6 = Dividend <$> (parseDate <$> v .! 0) <*> ( to_five_dp . (100*) <$> ( (/) <$> (v .! 5 :: Parser Double) <*> (v .! 4 :: Parser Double)))
+            | length v >= 6 = Dividend <$> (parseDate <$> v .! 0) <*> ( toFiveDp . (100*) <$> ( (/) <$> (v .! 5 :: Parser Double) <*> (v .! 4 :: Parser Double)))
             | otherwise     = mzero
 
-
-
-to_five_dp :: Double -> Double
-to_five_dp d = ((/100000) $ fromIntegral $ round (d * 100000))
 
 parseDate :: String -> Day
 parseDate s = parseTimeOrError True defaultTimeLocale "%d/%m/%Y" s :: Day
@@ -39,6 +39,9 @@ removeCsvHeader = toLazyByteString . unlines . (drop 9) . lines
 parseTransactions :: String -> [Transaction]
 parseTransactions str =  toList $ fromRight empty $ decodeCsv str
 
+{- 
+ - Takes a String, removes any header lines, and then parses the remaining lines into instances of Type a
+ -}
 decodeCsv :: FromRecord a => String -> Either String (Vector a)
 decodeCsv str = decode NoHeader (removeCsvHeader str) 
 

@@ -1,6 +1,6 @@
 module Utils
     (
-    stripWhitespace, toByteString, toLazyByteString, epoch
+    stripWhitespace, toByteString, toLazyByteString, epoch, toFiveDp
     )
 where
 import Data.Char(isSpace)
@@ -34,3 +34,9 @@ toLazyByteString = BB.toLazyByteString . BB.stringUtf8
 
 epoch :: Day
 epoch = fromGregorian 1970 1 1
+
+{-
+ - Rounds the input to 5 decimal places
+ -}
+toFiveDp :: Double -> Double
+toFiveDp d = ((/100000) $ fromIntegral $ round (d * 100000))

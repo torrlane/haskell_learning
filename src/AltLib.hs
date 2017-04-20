@@ -16,7 +16,7 @@ import Data.Time.Calendar (Day(..))
 {- 
  - cost is the total cost of the Transaction, not the individual cost per unit
  - -}
-data Transaction = Transaction{ transaction_date :: Day, shares_bought:: Int, cost :: Double } deriving (Read, Show, Eq)
+data Transaction = Transaction{ actioned_on :: Day, shares_bought:: Int, cost :: Double } deriving (Read, Show, Eq)
 
 data Dividend = Dividend{ paid_on :: Day, amount :: Double } deriving (Read, Show)
 

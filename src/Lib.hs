@@ -35,6 +35,10 @@ someFunc = do
 quandl_url :: String
 quandl_url = "https://www.quandl.com/api/v3/datasets/WIKI/FB/data.json?start_date=2016-10-01&end_date=2016-10-05"
 
+{- The value of the holding on the specified date -}
+value_on :: [Transaction] -> Valuation -> Double
+value_on [] _ = 0
+value_on xs (Valuation d p) = fromIntegral (number_held xs d) * p
 
 data Share = TSCO | HSBA 
 
@@ -51,10 +55,6 @@ dividends_paid_upto day (d:ds) ts = (dividend_amount day d) + dividends_paid_upt
         | paid_on >= day = 0
         | otherwise = fromIntegral (number_held ts day) * amount
 
-{- The value of the holding on the specified date -}
-value_on :: [Transaction] -> Valuation -> Double
-value_on [] _ = 0
-value_on xs (Valuation d p) = fromIntegral (number_held xs d) * p
 
 {- the number of shares held on the specified date (inclusive)-}
 number_held :: [Transaction] -> Day -> Int
@@ -72,5 +72,4 @@ number_held (t:ts) day =  calculateChangToHolding t + number_held ts day
 purchase number of shares, cost, date
 valuation share, value, date
 income date paid, amount.
-
 -}

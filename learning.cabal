@@ -49,6 +49,7 @@ executable parse-dividends-exe
                      , directory
                      , filepath
                      , cassava
+                     , containers
                      , learning
   default-language:    Haskell2010
 
@@ -66,6 +67,7 @@ test-suite learning-test
                      , test-framework
                      , test-framework-hunit
                      , HUnit
+                     , containers
                      , learning
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010

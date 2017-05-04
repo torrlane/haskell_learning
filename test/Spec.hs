@@ -8,7 +8,8 @@ import Test.HUnit (assertEqual, Assertion)
 import Data.Time.Calendar (fromGregorian)
 import Data.Csv (FromRecord(..), record, parseRecord, runParser)
 import Data.Either.Combinators (fromRight')
-import qualified AltLib as A (Dividend(..), Transaction(..), Holding(..), dividends_paid_upto, parseHolding) 
+import Data.Map as Map (fromList)
+import qualified AltLib as A (Dividend(..), Transaction(..), Holding(..), dividends_paid_upto, parseHolding, createHoldings) 
 import ParseDividends
 
 
@@ -81,6 +82,26 @@ test_parse_dividend =
 runParseRecordTest :: FromRecord a => [String] -> a
 runParseRecordTest xs = fromRight' . runParser . parseRecord . record $ fmap toByteString xs
 
+test_create_holdings :: Assertion
+test_create_holdings =
+    -- transaction with no dividends
+    let transactionDate1 = fromGregorian 2016 12 07
+        transaction1 = A.Transaction{A.actioned_on=transactionDate1, A.shares_bought=1, A.cost=11} 
+    -- holding with two transactions and 2 dividends
+        transactionDate2_1 = fromGregorian 2016 11 07
+        transactionDate2_2 = fromGregorian 2017 11 07
+        transaction2_1 = A.Transaction{A.actioned_on=transactionDate2_1, A.shares_bought=1, A.cost=11} 
+        transaction2_2 = A.Transaction{A.actioned_on=transactionDate2_2, A.shares_bought=4, A.cost=14} 
+        dividend2_1 = A.Dividend{A.paid_on=fromGregorian 2017 01 01, A.amount=28.9}
+        dividend2_2 = A.Dividend{A.paid_on=fromGregorian 2017 02 01, A.amount=29.1}
+        holding1 = A.Holding{A.share="share1", A.transactions=[transaction1], A.dividends=[]}
+        holding2 = A.Holding{A.share="share2", A.transactions=[transaction2_1, transaction2_2], A.dividends=[dividend2_1, dividend2_2]}
+    -- dividend with no corresponding transaction
+        dividend3 = A.Dividend{A.paid_on=fromGregorian 2017 04 01, A.amount=1.9}
+        transactionsMap = fromList [("share1", [transaction1]), ("share2", [transaction2_1, transaction2_2])]
+        dividendsMap = fromList [("share1", []), ("share2", [dividend2_1, dividend2_2]), ("share3", [dividend3])]
+    in
+    assertEqual "holdings fail" [holding1, holding2] $ A.createHoldings transactionsMap dividendsMap
 
 
 
@@ -95,5 +116,6 @@ main = defaultMain
         testCase "test_getShareName_from_csvLine_2" test_getShareName_from_csvLine_2,
         testCase "test_getShareName_from_csvLine_3" test_getShareName_from_csvLine_3,
         testCase "test_parse_transaction" test_parse_transaction,
-        testCase "test_parse_dividend" test_parse_dividend
+        testCase "test_parse_dividend" test_parse_dividend,
+        testCase "test_create_holdings" test_create_holdings
         ]

@@ -8,9 +8,11 @@ module AltLib
         Transaction(..),
         Holding(..),
         dividends_paid_upto,
-        parseHolding
+        parseHolding,
+        createHoldings
     ) where
 import Data.Time.Calendar (Day(..))
+import Data.Map as M (Map(..), mapWithKey, lookup, elems)
 
 
 {- 
@@ -51,3 +53,13 @@ number_held day ts = sum $ map calculateChangeToHolding ts
         
 parseHolding :: String -> Holding
 parseHolding s = read s :: Holding
+
+{- Takes a Map of shareName to [Transaction] and a Map of shareName to [Dividend] and creates a [Holding] from the information in both Maps
+ -}
+createHoldings :: M.Map String [Transaction] -> M.Map String [Dividend] -> [Holding]
+createHoldings tMap dMap = M.elems $ M.mapWithKey createHolding tMap
+    where 
+    createHolding shareName ts = Holding{share=shareName, transactions=ts, dividends=lookupDividends }
+        where lookupDividends = lift $ M.lookup shareName dMap
+              lift Nothing = []
+              lift (Just ds) = ds 

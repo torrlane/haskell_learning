@@ -2,11 +2,13 @@ module ParseDividendsMain where
 import Utils (stripWhitespace)
 import Data.Csv (FromRecord)
 import Data.List(lines, dropWhileEnd, dropWhile)
+import Data.Map as M (Map(..), union, empty, fromList)
 import Data.Char(isSpace)
 import System.IO(putStrLn, openFile, IOMode(ReadMode), hClose, hSetBuffering, stdout, BufferMode(LineBuffering), hGetContents )
 import System.Directory(listDirectory, getHomeDirectory)
 import ParseDividends
 import System.FilePath(combine)
+import AltLib(Dividend(..), Transaction(..), Holding(..), createHoldings)
 
 main :: IO ()
 main = do  
@@ -16,11 +18,16 @@ main = do
     let defaultDividendFolder = home ++ "/Downloads/Dividends/"
     let defaultTransactionFolder = home ++ "/Downloads/Transactions/"
     dividendsFolder <- requestFolder "Please provide a dividends folder" defaultDividendFolder
-    dividendFiles <- listFilesInFolder dividendsFolder
-    mapM_ (printCsvData parseDividends dividendsFolder) dividendFiles
+    dividendFiles <- absolutePaths dividendsFolder $ listFilesInFolder dividendsFolder
+    dividendsMap <- buildMap parseDividends dividendFiles 
+    mapM_ (printCsvData parseDividends) dividendFiles
     transactionsFolder <- requestFolder "Please provide a transactions folder" defaultTransactionFolder
-    transactionFiles <- listFilesInFolder transactionsFolder
-    mapM_ (printCsvData parseTransactions transactionsFolder) transactionFiles
+    transactionFiles <- absolutePaths transactionsFolder $ listFilesInFolder transactionsFolder
+    transactionsMap <- buildMap parseTransactions transactionFiles 
+    mapM_ (printCsvData parseTransactions) transactionFiles
+    let holdings = createHoldings transactionsMap dividendsMap
+    mapM_ (putStrLn . show) holdings
+
 
 {- 
  - Takes a question to ask the user i.e "please provide a folder", and a default value.
@@ -42,6 +49,12 @@ listFilesInFolder folder = do
     files <- listDirectory folder
     return files
 
+absolutePaths :: FilePath -> IO [FilePath] -> IO [FilePath]
+absolutePaths folder ioFiles = do
+    files <- ioFiles
+    let combined = map (combine folder) files
+    return combined 
+
 {-
  - Takes a default and a value and returns the default if value is null, the value otherwise
  -}
@@ -52,13 +65,41 @@ printShareName :: Maybe String -> IO()
 printShareName Nothing = putStrLn "Could not find share name"
 printShareName (Just s) = putStrLn $ "Found share: " ++ s
 
-printCsvData :: (FromRecord a, Show a) => (String -> [a]) -> FilePath -> FilePath -> IO()
-printCsvData parser folder fileName = do
-    putStrLn $ "reading data from " ++ fileName
-    let fullFileName = combine folder fileName
+{- Takes a parser function and a list of files and produces a map from the share name to the lists of the parsed values
+ -}
+buildMap :: (FromRecord a) => (String -> [a]) -> [FilePath] -> IO (M.Map String [a])
+buildMap parser fs = foldl acc (return M.empty) fs
+    where acc ioMap f = do
+            newMap <- buildMapFromCsv parser f
+            accMap <- ioMap
+            return $ union accMap newMap
+
+{- takes a csv file and returns a map from the sharename to a list of dividends/transactions/... from the file
+ -}
+buildMapFromCsv :: (FromRecord a) => (String -> [a]) -> FilePath -> IO (M.Map String [a])
+buildMapFromCsv parser file = do
+    putStrLn $ "reading data from: " ++ file
+    handle <- openFile file ReadMode
+    contents <- hGetContents handle  
+    let contentLines = lines contents
+    let shareName = getShareName . head $ contentLines
+    let values = parser contents
+    return $ mapMaybe shareName values
+    where
+    mapMaybe Nothing v = empty
+    mapMaybe (Just k) v = fromList [(k,v)]
+
+
+printCsvData :: (FromRecord a, Show a) => (String -> [a]) -> FilePath -> IO()
+printCsvData parser fullFileName = do
+    putStrLn $ "reading data from " ++ fullFileName
     handle <- openFile fullFileName ReadMode
     contents <- hGetContents handle  
     let contentLines = lines contents
     printShareName $ getShareName . head $ contentLines
     mapM_ putStrLn $ map show $ parser contents
     hClose handle
+
+
+
+

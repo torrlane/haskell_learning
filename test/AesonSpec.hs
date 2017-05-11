@@ -5,8 +5,9 @@ module AesonSpec
 where
 import Utils (toLazyByteString)
 import Data.Aeson.Types (parseMaybe)
-import Data.Aeson (decode)
-import Lib (Valuation(..), parseJSON)
+import Data.Aeson (decode, parseJSON)
+import Lib 
+import AltLib (Valuation(..))
 import Data.Time.Calendar (fromGregorian)
 import Test.HUnit (assertEqual)
 

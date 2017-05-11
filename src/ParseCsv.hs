@@ -1,9 +1,9 @@
-module ParseDividends 
+module ParseCsv 
     (
     getShareName, parseDividends, parseTransactions
     )
 where
-import AltLib (Dividend(Dividend), Transaction(Transaction))
+import AltLib (Dividend(..), Transaction(Transaction))
 import Utils (stripWhitespace, toLazyByteString, toFiveDp)
 import Data.List (null, drop, stripPrefix)
 import Data.Time.Calendar (Day)

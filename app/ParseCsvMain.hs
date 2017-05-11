@@ -1,12 +1,12 @@
-module ParseDividendsMain where
-import Utils (stripWhitespace)
+module ParseCsvMain where
+import Utils (stripWhitespace, defaultWhenNull)
 import Data.Csv (FromRecord)
 import Data.List(lines, dropWhileEnd, dropWhile)
 import Data.Map as M (Map(..), union, empty, fromList)
 import Data.Char(isSpace)
 import System.IO(putStrLn, openFile, IOMode(ReadMode), hClose, hSetBuffering, stdout, BufferMode(LineBuffering), hGetContents )
 import System.Directory(listDirectory, getHomeDirectory)
-import ParseDividends
+import ParseCsv
 import System.FilePath(combine)
 import AltLib(Dividend(..), Transaction(..), Holding(..), createHoldings)
 
@@ -55,11 +55,6 @@ absolutePaths folder ioFiles = do
     let combined = map (combine folder) files
     return combined 
 
-{-
- - Takes a default and a value and returns the default if value is null, the value otherwise
- -}
-defaultWhenNull :: String -> String -> String
-defaultWhenNull dfault str = if null str then dfault else str
     
 printShareName :: Maybe String -> IO()
 printShareName Nothing = putStrLn "Could not find share name"

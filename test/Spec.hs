@@ -10,7 +10,7 @@ import Data.Csv (FromRecord(..), record, parseRecord, runParser)
 import Data.Either.Combinators (fromRight')
 import Data.Map as Map (fromList)
 import qualified AltLib as A (Dividend(..), Transaction(..), Holding(..), dividends_paid_upto, parseHolding, createHoldings) 
-import ParseDividends
+import ParseCsv
 
 
 {-

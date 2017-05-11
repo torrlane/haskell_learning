@@ -4,16 +4,23 @@
 -}
 module AltLib
     ( 
+        Valuation(..),
+        --Valuation(valued_on, price),
         Dividend(..),
         Transaction(..),
         Holding(..),
         dividends_paid_upto,
         parseHolding,
-        createHoldings
+        createHoldings,
+        valued_on,
+        paid_on,
+        amount,
+        price
     ) where
-import Data.Time.Calendar (Day(..))
-import Data.Map as M (Map(..), mapWithKey, lookup, elems)
+import Data.Time.Calendar               (Day(..))
+import Data.Map             as M        (Map(..), mapWithKey, lookup, elems)
 
+data Valuation = Valuation {valued_on :: Day, price :: Double} deriving (Show, Eq)
 
 {- 
  - cost is the total cost of the Transaction, not the individual cost per unit

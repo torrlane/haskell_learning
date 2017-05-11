@@ -1,6 +1,6 @@
 module Utils
     (
-    stripWhitespace, toByteString, toLazyByteString, epoch, toFiveDp
+    stripWhitespace, toByteString, toLazyByteString, epoch, toFiveDp, defaultWhenNull
     )
 where
 import Data.Char(isSpace)
@@ -40,3 +40,9 @@ epoch = fromGregorian 1970 1 1
  -}
 toFiveDp :: Double -> Double
 toFiveDp d = ((/100000) $ fromIntegral $ round (d * 100000))
+
+{-
+ - Takes a default and a value and returns the default if value is null, the value otherwise
+ -}
+defaultWhenNull :: String -> String -> String
+defaultWhenNull dfault str = if null str then dfault else str

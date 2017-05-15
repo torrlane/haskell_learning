@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import QuandlLookup
 import System.IO 
 
 main :: IO ()

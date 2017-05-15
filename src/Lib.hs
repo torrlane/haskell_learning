@@ -1,44 +1,71 @@
--- {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- The DuplicateRecordFields language extension allows records to use the same name for field labels. Without it, all the records in this module would need to have unique names for all their fields.
 -}
 module Lib
     ( 
-    someFunc
+        Valuation(..),
+        Dividend(..),
+        Transaction(..),
+        Holding(..),
+        dividends_paid_upto,
+        parseHolding,
+        createHoldings,
+        valued_on,
+        paid_on,
+        amount,
+        price
     ) where
-import Data.Time.Calendar                   (Day(..))
-import Control.Lens                         ( (^.) )
-import Data.Time.Format                     (parseTimeOrError, defaultTimeLocale)
-import qualified Data.Vector as V           (toList)
-import Network.Wreq                         (Response(..), asJSON, get, responseBody)
-import Data.Aeson                           (Value(..), FromJSON(..), (.:), (.=), withObject, withArray)
-import AltLib                               (Valuation(..))
+import Data.Time.Calendar               (Day(..))
+import Data.Map             as M        (Map(..), mapWithKey, lookup, elems)
 
+data Valuation = Valuation {valued_on :: Day, price :: Double} deriving (Show, Eq)
 
-instance FromJSON Valuation where
-    parseJSON = withObject "valuation" $ \o -> do
-        dataset_data <- o .: "dataset_data"
-        data_array <- dataset_data .: "data"
-        innerArray <- withArray "data_array" (\arr -> parseJSON (head (V.toList arr))) $ data_array
-        dateString <- withArray "innerArray" (\arr -> parseJSON (head (V.toList arr))) $ innerArray
-        price <- withArray "innerArray" (\arr -> parseJSON (head (tail (V.toList arr)))) $ innerArray
-        let date = parseDate $ dateString 
-        return Valuation{valued_on=date, price=price}
+{- 
+ - cost is the total cost of the Transaction, not the individual cost per unit
+ - -}
+data Transaction = Transaction{ actioned_on :: Day, shares_bought:: Int, cost :: Double } deriving (Read, Show, Eq)
+
+data Dividend = Dividend{ paid_on :: Day, amount :: Double } deriving (Read, Show)
+
+-- equals doesn't work well for Doubles. Make Dividend an instance of Eq and use a small error when comparing the Dividend amounts
+instance Eq Dividend where
+    a == b = (paid_on a) == (paid_on b) && (amount a) ~= (amount b)
+
+data Holding = Holding{ share :: String, transactions :: [Transaction], dividends :: [Dividend] } deriving (Read, Show, Eq)
+
+{- 'roughly equal' evaluates to true if the two input values are roughly equivalent -}
+(~=) :: Double -> Double -> Bool
+x ~= y = (x + delta) > y && (x - delta) < y
+
+delta :: Double
+delta = 0.000001
+
+{- Calculates the amount of dividends paid up to the specified date (inclusive) -}
+dividends_paid_upto :: Day -> [Dividend] -> [Transaction] -> Double
+dividends_paid_upto d ds ts = sum $ map (dividend_amount d) ds
+    where 
+    dividend_amount day (Dividend paid_on amount)
+        | paid_on > day = 0
+        | otherwise = fromIntegral (number_held day ts) * amount
+
+{- the number of shares held on the specified date (inclusive)-}
+number_held :: Day -> [Transaction] -> Int
+number_held day ts = sum $ map calculateChangeToHolding ts
+    where 
+    calculateChangeToHolding (Transaction transaction_date shares_bought _)
+        | transaction_date > day = 0
+        | otherwise = shares_bought
         
+parseHolding :: String -> Holding
+parseHolding s = read s :: Holding
 
-parseDate s = parseTimeOrError True defaultTimeLocale "%Y-%m-%d" s :: Day
-
-someFunc = do
-    r <- asJSON =<< get quandl_url :: IO (Response Valuation)
-    print $ show $ r ^. responseBody 
-    
-quandl_url :: String
-quandl_url = "https://www.quandl.com/api/v3/datasets/WIKI/FB/data.json?start_date=2016-10-01&end_date=2016-10-05"
-
-
-
-{-
-purchase number of shares, cost, date
-valuation share, value, date
-income date paid, amount.
--}
+{- Takes a Map of shareName to [Transaction] and a Map of shareName to [Dividend] and creates a [Holding] from the information in both Maps
+ -}
+createHoldings :: M.Map String [Transaction] -> M.Map String [Dividend] -> [Holding]
+createHoldings tMap dMap = M.elems $ M.mapWithKey createHolding tMap
+    where 
+    createHolding shareName ts = Holding{share=shareName, transactions=ts, dividends=lookupDividends }
+        where lookupDividends = lift $ M.lookup shareName dMap
+              lift Nothing = []
+              lift (Just ds) = ds 

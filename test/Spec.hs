@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where 
-import Utils (toByteString, epoch)
-import AesonSpec (test1, test2)
-import Test.Framework (defaultMain)
-import Test.Framework.Providers.HUnit (testCase)
-import Test.HUnit (assertEqual, Assertion)
-import Data.Time.Calendar (fromGregorian)
-import Data.Csv (FromRecord(..), record, parseRecord, runParser)
-import Data.Either.Combinators (fromRight')
-import Data.Map as Map (fromList)
-import qualified AltLib as A (Dividend(..), Transaction(..), Holding(..), dividends_paid_upto, parseHolding, createHoldings) 
+import Utils                            (toByteString, epoch)
+import QuandlLookupSpec                 (test1, test2)
+import Test.Framework                   (defaultMain)
+import Test.Framework.Providers.HUnit   (testCase)
+import Test.HUnit                       (assertEqual, Assertion)
+import Data.Time.Calendar               (fromGregorian)
+import Data.Csv                         (FromRecord(..), record, parseRecord, runParser)
+import Data.Either.Combinators          (fromRight')
+import Data.Map as Map                  (fromList)
+import qualified Lib as A               (Dividend(..), Transaction(..), Holding(..), dividends_paid_upto, parseHolding, createHoldings) 
 import ParseCsv
 
 

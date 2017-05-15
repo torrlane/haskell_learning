@@ -1,14 +1,14 @@
 module ParseCsvMain where
-import Utils (stripWhitespace, defaultWhenNull)
-import Data.Csv (FromRecord)
-import Data.List(lines, dropWhileEnd, dropWhile)
-import Data.Map as M (Map(..), union, empty, fromList)
-import Data.Char(isSpace)
-import System.IO(putStrLn, openFile, IOMode(ReadMode), hClose, hSetBuffering, stdout, BufferMode(LineBuffering), hGetContents )
-import System.Directory(listDirectory, getHomeDirectory)
+import Utils                            (stripWhitespace, defaultWhenNull)
+import Data.Csv                         (FromRecord)
+import Data.List                        (lines, dropWhileEnd, dropWhile)
+import Data.Map as M                    (Map(..), union, empty, fromList)
+import Data.Char                        (isSpace)
+import System.IO                        (putStrLn, openFile, IOMode(ReadMode), hClose, hSetBuffering, stdout, BufferMode(LineBuffering), hGetContents )
+import System.Directory                 (listDirectory, getHomeDirectory)
 import ParseCsv
-import System.FilePath(combine)
-import AltLib(Dividend(..), Transaction(..), Holding(..), createHoldings)
+import System.FilePath                  (combine)
+import Lib                              (Dividend(..), Transaction(..), Holding(..), createHoldings)
 
 main :: IO ()
 main = do  

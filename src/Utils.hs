@@ -3,14 +3,14 @@ module Utils
     stripWhitespace, toByteString, toLazyByteString, epoch, toFiveDp, defaultWhenNull
     )
 where
-import Data.Char(isSpace)
-import Data.List (dropWhileEnd)
-import qualified Data.ByteString as B (ByteString(..))
-import qualified Data.ByteString.Lazy as LZ (ByteString(..), toStrict)
-import qualified Data.ByteString.Builder as BB (toLazyByteString, stringUtf8)
-import qualified Data.Text.Lazy.Encoding as E (encodeUtf8)
-import qualified Data.Text.Lazy as L (pack)
-import Data.Time.Calendar (Day(..), fromGregorian)
+import Data.Char                                    (isSpace)
+import Data.List                                    (dropWhileEnd)
+import qualified Data.ByteString as B               (ByteString(..))
+import qualified Data.ByteString.Lazy as LZ         (ByteString(..), toStrict)
+import qualified Data.ByteString.Builder as BB      (toLazyByteString, stringUtf8)
+import qualified Data.Text.Lazy.Encoding as E       (encodeUtf8)
+import qualified Data.Text.Lazy as L                (pack)
+import Data.Time.Calendar                           (Day(..), fromGregorian)
 
 {-
  - Removes the whitespace from the start and end of the String. 

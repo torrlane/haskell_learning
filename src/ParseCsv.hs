@@ -3,16 +3,16 @@ module ParseCsv
     getShareName, parseDividends, parseTransactions
     )
 where
-import AltLib (Dividend(..), Transaction(Transaction))
-import Utils (stripWhitespace, toLazyByteString, toFiveDp)
-import Data.List (null, drop, stripPrefix)
-import Data.Time.Calendar (Day)
-import Data.Time.Format (parseTimeOrError, defaultTimeLocale)
-import Data.Csv (FromRecord(parseRecord), Parser, Record, HasHeader(NoHeader), (.!), decode)
-import Data.Either.Combinators (fromRight)
-import Control.Monad (mzero)
-import Data.Vector (Vector, toList, empty )
-import qualified Data.ByteString.Lazy as B (ByteString)
+import Lib                                      (Dividend(..), Transaction(Transaction))
+import Utils                                    (stripWhitespace, toLazyByteString, toFiveDp)
+import Data.List                                (null, drop, stripPrefix)
+import Data.Time.Calendar                       (Day)
+import Data.Time.Format                         (parseTimeOrError, defaultTimeLocale)
+import Data.Csv                                 (FromRecord(parseRecord), Parser, Record, HasHeader(NoHeader), (.!), decode)
+import Data.Either.Combinators                  (fromRight)
+import Control.Monad                            (mzero)
+import Data.Vector                              (Vector, toList, empty )
+import qualified Data.ByteString.Lazy as B      (ByteString)
 
 
 getShareName :: String -> Maybe String

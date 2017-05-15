@@ -1,15 +1,15 @@
-module AesonSpec 
+module QuandlLookupSpec 
     (
     test1, test2
     )
 where
-import Utils (toLazyByteString)
-import Data.Aeson.Types (parseMaybe)
-import Data.Aeson (decode, parseJSON)
-import Lib 
-import AltLib (Valuation(..))
-import Data.Time.Calendar (fromGregorian)
-import Test.HUnit (assertEqual)
+import Utils                (toLazyByteString)
+import Data.Aeson.Types     (parseMaybe)
+import Data.Aeson           (decode, parseJSON)
+import QuandlLookup 
+import Lib                  (Valuation(..))
+import Data.Time.Calendar   (fromGregorian)
+import Test.HUnit           (assertEqual)
 
 {- multiline strings -}
 json1 = "{\n\

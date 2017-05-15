@@ -1,23 +1,25 @@
-{-# LANGUAGE DuplicateRecordFields #-}
+-- {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- The DuplicateRecordFields language extension allows records to use the same name for field labels. Without it, all the records in this module would need to have unique names for all their fields.
 -}
 module Lib
     ( 
-        Valuation(..),
-        Dividend(..),
-        Transaction(..),
-        Holding(..),
+        AccountSummary(AccountSummary, date, shareHoldings),
+        ShareHolding(ShareHolding, shareName, unitsHeld, sharePrice),
+        Valuation(Valuation, valued_on, price),
+        Dividend(Dividend, paid_on, amount),
+        Transaction(Transaction, actioned_on, shares_bought, cost),
+        Holding(Holding, share, transactions, dividends),
         dividends_paid_upto,
         parseHolding,
         createHoldings,
-        valued_on,
-        paid_on,
-        amount,
-        price
     ) where
 import Data.Time.Calendar               (Day(..))
 import Data.Map             as M        (Map(..), mapWithKey, lookup, elems)
+
+data AccountSummary = AccountSummary{ date :: Day, shareHoldings :: [ShareHolding]}
+
+data ShareHolding = ShareHolding{ shareName :: String, unitsHeld :: Int, sharePrice :: Double } deriving (Show, Eq)
 
 data Valuation = Valuation {valued_on :: Day, price :: Double} deriving (Show, Eq)
 

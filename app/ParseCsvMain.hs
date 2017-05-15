@@ -49,6 +49,8 @@ listFilesInFolder folder = do
     files <- listDirectory folder
     return files
 
+{- takes a folder and an array of files and prefixes the files with the folder to give an array of absolute paths.
+ -}
 absolutePaths :: FilePath -> IO [FilePath] -> IO [FilePath]
 absolutePaths folder ioFiles = do
     files <- ioFiles

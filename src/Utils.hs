@@ -1,6 +1,6 @@
 module Utils
     (
-    stripWhitespace, toByteString, toLazyByteString, epoch, toFiveDp, defaultWhenNull
+    stripWhitespace, toByteString, toLazyByteString, epoch, toFiveDp, defaultWhenNull, parseInt, parseDouble, stripDoubleQuotes, (~=), delta
     )
 where
 import Data.Char                                    (isSpace)
@@ -19,6 +19,12 @@ import Data.Time.Calendar                           (Day(..), fromGregorian)
 stripWhitespace :: String -> String 
 stripWhitespace s = dropWhile isSpace $ dropWhileEnd isSpace s 
 
+{- 'roughly equal' evaluates to true if the two input values are roughly equivalent -}
+(~=) :: Double -> Double -> Bool
+x ~= y = (x + delta) > y && (x - delta) < y
+
+delta :: Double
+delta = 0.000001
 
 {-
  - Convert a String to a Data.ByteString.Internal.ByteString .
@@ -46,3 +52,12 @@ toFiveDp d = ((/100000) $ fromIntegral $ round (d * 100000))
  -}
 defaultWhenNull :: String -> String -> String
 defaultWhenNull dfault str = if null str then dfault else str
+
+parseInt :: String -> Int
+parseInt s = read s :: Int
+
+parseDouble :: String -> Double
+parseDouble s = read s :: Double
+
+stripDoubleQuotes :: String -> String
+stripDoubleQuotes xs = filter (\x -> x/= '"') xs

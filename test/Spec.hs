@@ -1,15 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where 
-import Utils                            (toByteString, epoch)
-import TestUtils                        (runParseRecordTest)
-import QuandlLookupSpec                 (test1, test2)
-import Hl.Csv.AccountSummarySpec        (testParseShareHolding)
-import Test.Framework                   (defaultMain)
-import Test.Framework.Providers.HUnit   (testCase)
-import Test.HUnit                       (assertEqual, Assertion)
-import Data.Time.Calendar               (fromGregorian)
-import Data.Map as Map                  (fromList)
-import qualified Lib as A               (Dividend(..), Transaction(..), Holding(..), dividends_paid_upto, parseHolding, createHoldings) 
+import Utils                                (toByteString, epoch)
+import TestUtils                            (runParseRecordTest)
+import QuandlLookupSpec                     (test1, test2)
+import Hl.Csv.AccountSummarySpec            (testParseShareHolding)
+import Test.Framework                       (defaultMain, testGroup)
+import Test.Framework.Providers.HUnit       (testCase)
+import Test.HUnit                           (assertEqual, Assertion)
+import Data.Time.Calendar                   (fromGregorian)
+import Data.Map as Map                      (fromList)
+import qualified Lib as A                   (Holding(..), dividends_paid_upto, parseHolding, createHoldings) 
+import qualified Hl.Csv.Dividend as D       (Dividend(..))
+import qualified Hl.Csv.Transaction as T    (Transaction(..))
 import ParseCsv
 
 
@@ -23,8 +25,8 @@ test_dividend_calculation :: Assertion
 test_dividend_calculation = 
     let purchaseDate = epoch
         dividendPaymentDate = epoch
-        transaction = A.Transaction{A.actioned_on=purchaseDate,A.shares_bought=8,A.cost=0}
-        dividend = A.Dividend{A.paid_on=dividendPaymentDate, A.amount=10} 
+        transaction = T.Transaction{T.actioned_on=purchaseDate,T.shares_bought=8,T.cost=0}
+        dividend = D.Dividend{D.paid_on=dividendPaymentDate, D.amount=10} 
         expected = 80 
     in
     assertEqual "" expected $ A.dividends_paid_upto epoch [dividend] [transaction]
@@ -64,13 +66,13 @@ test_parse_transaction :: Assertion
 test_parse_transaction = 
     let expectedTransactionDate = fromGregorian 2016 12 07
         csvTransactionDate = "07/12/2016"
-        expected = A.Transaction {A.actioned_on=expectedTransactionDate, A.shares_bought=1, A.cost=11} 
+        expected = T.Transaction {T.actioned_on=expectedTransactionDate, T.shares_bought=1, T.cost=11} 
     in
     assertEqual "" expected $ runParseRecordTest [csvTransactionDate, "_", "_", "_", "1.00", "11"] 
 
 test_parse_dividend :: Assertion
 test_parse_dividend = 
-    let expected = A.Dividend{A.paid_on=fromGregorian 2016 12 07, A.amount=28.9}
+    let expected = D.Dividend{D.paid_on=fromGregorian 2016 12 07, D.amount=28.9}
         csvLine = ["07/12/2016","ST DIV","share name","n/a","80.00","23.12"] 
     in
     assertEqual "" expected $ runParseRecordTest csvLine
@@ -81,18 +83,18 @@ test_create_holdings :: Assertion
 test_create_holdings =
     -- transaction with no dividends
     let transactionDate1 = fromGregorian 2016 12 07
-        transaction1 = A.Transaction{A.actioned_on=transactionDate1, A.shares_bought=1, A.cost=11} 
+        transaction1 = T.Transaction{T.actioned_on=transactionDate1, T.shares_bought=1, T.cost=11} 
     -- holding with two transactions and 2 dividends
         transactionDate2_1 = fromGregorian 2016 11 07
         transactionDate2_2 = fromGregorian 2017 11 07
-        transaction2_1 = A.Transaction{A.actioned_on=transactionDate2_1, A.shares_bought=1, A.cost=11} 
-        transaction2_2 = A.Transaction{A.actioned_on=transactionDate2_2, A.shares_bought=4, A.cost=14} 
-        dividend2_1 = A.Dividend{A.paid_on=fromGregorian 2017 01 01, A.amount=28.9}
-        dividend2_2 = A.Dividend{A.paid_on=fromGregorian 2017 02 01, A.amount=29.1}
+        transaction2_1 = T.Transaction{T.actioned_on=transactionDate2_1, T.shares_bought=1, T.cost=11} 
+        transaction2_2 = T.Transaction{T.actioned_on=transactionDate2_2, T.shares_bought=4, T.cost=14} 
+        dividend2_1 = D.Dividend{D.paid_on=fromGregorian 2017 01 01, D.amount=28.9}
+        dividend2_2 = D.Dividend{D.paid_on=fromGregorian 2017 02 01, D.amount=29.1}
         holding1 = A.Holding{A.share="share1", A.transactions=[transaction1], A.dividends=[]}
         holding2 = A.Holding{A.share="share2", A.transactions=[transaction2_1, transaction2_2], A.dividends=[dividend2_1, dividend2_2]}
     -- dividend with no corresponding transaction
-        dividend3 = A.Dividend{A.paid_on=fromGregorian 2017 04 01, A.amount=1.9}
+        dividend3 = D.Dividend{D.paid_on=fromGregorian 2017 04 01, D.amount=1.9}
         transactionsMap = fromList [("share1", [transaction1]), ("share2", [transaction2_1, transaction2_2])]
         dividendsMap = fromList [("share1", []), ("share2", [dividend2_1, dividend2_2]), ("share3", [dividend3])]
     in

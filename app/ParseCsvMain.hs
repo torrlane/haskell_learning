@@ -8,7 +8,8 @@ import System.IO                        (putStrLn, openFile, IOMode(ReadMode), h
 import System.Directory                 (listDirectory, getHomeDirectory)
 import ParseCsv
 import System.FilePath                  (combine)
-import Lib                              (Dividend(..), Transaction(..), Holding(..), createHoldings)
+import Lib                              (Transaction(..), Holding(..), createHoldings)
+import Hl.Csv.Dividend                  (Dividend(..))
 
 main :: IO ()
 main = do  

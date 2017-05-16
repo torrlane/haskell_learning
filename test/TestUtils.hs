@@ -1,6 +1,7 @@
 module TestUtils
     (
-    runParseRecordTest
+    runParseRecordTest,
+    eitherParseRecordTest 
     )
 where
 import Data.Either.Combinators          (fromRight')
@@ -13,4 +14,7 @@ import Utils                            (toByteString)
  -}
 runParseRecordTest :: FromRecord a => [String] -> a
 runParseRecordTest xs = fromRight' . runParser . parseRecord . record $ fmap toByteString xs
+
+eitherParseRecordTest :: FromRecord a => [String] -> Either String a
+eitherParseRecordTest xs = runParser . parseRecord . record $ fmap toByteString xs
     

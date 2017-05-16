@@ -3,7 +3,8 @@ module ParseCsv
     getShareName, parseDividends, parseTransactions
     )
 where
-import Lib                                      (Dividend(..), Transaction(Transaction))
+import Hl.Csv.Dividend                          (Dividend(Dividend))
+import Hl.Csv.Transaction                       (Transaction(Transaction))
 import Utils                                    (stripWhitespace, toLazyByteString, toFiveDp)
 import Data.List                                (null, drop, stripPrefix)
 import Data.Time.Calendar                       (Day)

@@ -4,8 +4,8 @@ module Hl.Csv.AccountSummarySpec
     )
 where
 
-import Utils                        (toLazyByteString)
-import TestUtils                    (runParseRecordTest)
+import Utils                        (toLazyByteString, parseDouble, stripDoubleQuotes)
+import TestUtils                    (eitherParseRecordTest, runParseRecordTest)
 import Data.Aeson.Types             (parseMaybe)
 import Data.Aeson                   (decode, parseJSON)
 import QuandlLookup 
@@ -21,4 +21,4 @@ testParseShareHolding =
         --Stock,Units held,Price (pence),Value (£),Cost (£),Gain/loss (£),Gain/loss (%),Yield,Day change (pence),Day change (%),
         csvLine = ["\"name\"","\"4\"","\"1.50\"","\"1,981.44\"","\"2,012.36\"","\"-30.92\"","\"-1.54\"","\"1.02\"","\"4.50\"","\"0.44\""]
     in
-    assertEqual "" expected $ runParseRecordTest csvLine
+    assertEqual "" (Right expected) $ eitherParseRecordTest csvLine

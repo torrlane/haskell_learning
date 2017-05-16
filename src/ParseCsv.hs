@@ -3,7 +3,7 @@ module ParseCsv
     getShareName, parseDividends, parseTransactions
     )
 where
-import Lib                                      (Dividend(..), Transaction(Transaction), ShareHolding)
+import Lib                                      (Dividend(..), Transaction(Transaction))
 import Utils                                    (stripWhitespace, toLazyByteString, toFiveDp)
 import Data.List                                (null, drop, stripPrefix)
 import Data.Time.Calendar                       (Day)
@@ -14,9 +14,6 @@ import Control.Monad                            (mzero)
 import Data.Vector                              (Vector, toList, empty )
 import qualified Data.ByteString.Lazy as B      (ByteString)
 
-instance FromRecord ShareHolding where
-    parseRecord v
-        | length v >= 0 = mzero
 
 
 

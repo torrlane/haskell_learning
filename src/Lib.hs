@@ -4,8 +4,6 @@
 -}
 module Lib
     ( 
-        AccountSummary(AccountSummary, date, shareHoldings),
-        ShareHolding(ShareHolding, shareName, unitsHeld, sharePrice),
         Valuation(Valuation, valued_on, price),
         Dividend(Dividend, paid_on, amount),
         Transaction(Transaction, actioned_on, shares_bought, cost),
@@ -17,9 +15,6 @@ module Lib
 import Data.Time.Calendar               (Day(..))
 import Data.Map             as M        (Map(..), mapWithKey, lookup, elems)
 
-data AccountSummary = AccountSummary{ date :: Day, shareHoldings :: [ShareHolding]}
-
-data ShareHolding = ShareHolding{ shareName :: String, unitsHeld :: Int, sharePrice :: Double } deriving (Show, Eq)
 
 data Valuation = Valuation {valued_on :: Day, price :: Double} deriving (Show, Eq)
 

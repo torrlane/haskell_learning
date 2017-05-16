@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where 
 import Utils                            (toByteString, epoch)
+import TestUtils                        (runParseRecordTest)
 import QuandlLookupSpec                 (test1, test2)
+import Hl.Csv.AccountSummarySpec        (testParseShareHolding)
 import Test.Framework                   (defaultMain)
 import Test.Framework.Providers.HUnit   (testCase)
 import Test.HUnit                       (assertEqual, Assertion)
 import Data.Time.Calendar               (fromGregorian)
-import Data.Csv                         (FromRecord(..), record, parseRecord, runParser)
-import Data.Either.Combinators          (fromRight')
 import Data.Map as Map                  (fromList)
-import qualified Lib as A               (Dividend(..), Transaction(..), Holding(..), ShareHolding(..), dividends_paid_upto, parseHolding, createHoldings) 
+import qualified Lib as A               (Dividend(..), Transaction(..), Holding(..), dividends_paid_upto, parseHolding, createHoldings) 
 import ParseCsv
 
 
@@ -75,20 +75,7 @@ test_parse_dividend =
     in
     assertEqual "" expected $ runParseRecordTest csvLine
 
-testParseShareHolding :: Assertion
-testParseShareHolding =
-    let expected = A.ShareHolding{A.shareName="name", A.unitsHeld=4, A.sharePrice=1.5}
-        --Stock,Units held,Price (pence),Value (£),Cost (£),Gain/loss (£),Gain/loss (%),Yield,Day change (pence),Day change (%),
-        csvLine = ["\"name\"","\"4\"","\"1.50\"","\"1,981.44\"","\"2,012.36\"","\"-30.92\"","\"-1.54\"","\"1.02\"","\"4.50\"","\"0.44\""]
-    in
-    assertEqual "" expected $ runParseRecordTest csvLine
 
-{-
- - Take a "csv" as input and parse it into a type using the Data.Csv.parseRecord method, which will, in turn, use the appropriate fromRecord function for the desired type.
- - We assume success and return the right hand side of the Either.
- -}
-runParseRecordTest :: FromRecord a => [String] -> a
-runParseRecordTest xs = fromRight' . runParser . parseRecord . record $ fmap toByteString xs
 
 test_create_holdings :: Assertion
 test_create_holdings =

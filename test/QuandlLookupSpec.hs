@@ -9,7 +9,7 @@ import Data.Aeson           (decode, parseJSON)
 import QuandlLookup 
 import Lib                  (Valuation(..))
 import Data.Time.Calendar   (fromGregorian)
-import Test.HUnit           (assertEqual)
+import Test.HUnit           (assertEqual, Assertion)
 
 {- multiline strings -}
 json1 = "{\n\
@@ -26,6 +26,7 @@ json1 = "{\n\
         \   }\n\
         \}"
 
+test1 :: Assertion
 test1 = assertEqual "valuations equal? " (Just Valuation{valued_on=now, price=128.25}) $ parse json1
 
 json2 = "{\n\
@@ -37,6 +38,7 @@ json2 = "{\n\
         \   }\n\
         \}"
 
+test2 :: Assertion
 test2 = assertEqual "dates equal?" (Just now) $ valued_on <$> (parse json2)
 
 now = fromGregorian 2016 10 05 

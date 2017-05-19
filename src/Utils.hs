@@ -1,6 +1,6 @@
 module Utils
     (
-    stripWhitespace, toByteString, toLazyByteString, epoch, toFiveDp, defaultWhenNull, parseInt, parseDouble, stripDoubleQuotes, (~=), delta
+    stripWhitespace, toByteString, toLazyByteString, epoch, toFiveDp, defaultWhenNull, parseInt, parseDouble, stripDoubleQuotes, (~=), delta, parseDate
     )
 where
 import Data.Char                                    (isSpace)
@@ -11,6 +11,7 @@ import qualified Data.ByteString.Builder as BB      (toLazyByteString, stringUtf
 import qualified Data.Text.Lazy.Encoding as E       (encodeUtf8)
 import qualified Data.Text.Lazy as L                (pack)
 import Data.Time.Calendar                           (Day(..), fromGregorian)
+import Data.Time.Format                             (parseTimeOrError, defaultTimeLocale)
 
 {-
  - Removes the whitespace from the start and end of the String. 
@@ -52,6 +53,9 @@ toFiveDp d = ((/100000) $ fromIntegral $ round (d * 100000))
  -}
 defaultWhenNull :: String -> String -> String
 defaultWhenNull dfault str = if null str then dfault else str
+
+parseDate :: String -> Day
+parseDate s = parseTimeOrError True defaultTimeLocale "%d/%m/%Y" s :: Day
 
 parseInt :: String -> Int
 parseInt s = read s :: Int

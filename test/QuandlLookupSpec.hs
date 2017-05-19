@@ -1,6 +1,6 @@
 module QuandlLookupSpec 
     (
-    test1, test2
+    quandlLookupTests
     )
 where
 import Utils                (toLazyByteString)
@@ -10,6 +10,14 @@ import QuandlLookup
 import Lib                  (Valuation(..))
 import Data.Time.Calendar   (fromGregorian)
 import Test.HUnit           (assertEqual, Assertion)
+import Test.Framework                       (Test, defaultMain, testGroup)
+import Test.Framework.Providers.HUnit       (testCase)
+
+quandlLookupTests :: Test
+quandlLookupTests = testGroup "quandlLookupTests" [
+        testCase "test price is parsed correctly from json" test1,
+        testCase "test valuation date is parsed from Json" test2
+        ]
 
 {- multiline strings -}
 json1 = "{\n\

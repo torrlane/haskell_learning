@@ -3,13 +3,13 @@ module QuandlLookupSpec
     quandlLookupTests
     )
 where
-import Utils                (toLazyByteString)
-import Data.Aeson.Types     (parseMaybe)
-import Data.Aeson           (decode, parseJSON)
+import Utils                                (toLazyByteString)
+import Data.Aeson.Types                     (parseMaybe)
+import Data.Aeson                           (decode, parseJSON)
 import QuandlLookup 
-import Lib                  (Valuation(..))
-import Data.Time.Calendar   (fromGregorian)
-import Test.HUnit           (assertEqual, Assertion)
+import Lib                                  (Valuation(..))
+import Data.Time.Calendar                   (fromGregorian)
+import Test.HUnit                           (assertEqual, Assertion)
 import Test.Framework                       (Test, defaultMain, testGroup)
 import Test.Framework.Providers.HUnit       (testCase)
 

@@ -10,6 +10,8 @@ import Utils                        (parseInt, parseDouble, stripDoubleQuotes)
 
 data AccountSummary = AccountSummary{ date :: Day, shareHoldings :: [ShareHolding]}
 
+{- contains details of how many of a particular share is held at a certain point in time, and the shareprice at that time
+ -}
 data ShareHolding = ShareHolding{ shareName :: String, unitsHeld :: Int, sharePrice :: Double } deriving (Show, Eq)
 
 

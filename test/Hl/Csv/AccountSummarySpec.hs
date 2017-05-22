@@ -5,14 +5,8 @@ module Hl.Csv.AccountSummarySpec
     )
 where
 
-import Utils                                (toLazyByteString, parseDouble, stripDoubleQuotes)
-import TestUtils                            (eitherParseRecordTest, runParseRecordTest)
-import Data.Aeson.Types                     (parseMaybe)
-import Data.Aeson                           (decode, parseJSON)
-import QuandlLookup 
-import Lib                                  (Valuation(..))
+import TestUtils                            (eitherParseRecordTest)
 import Hl.Csv.AccountSummary as A           (ShareHolding(ShareHolding, shareName, unitsHeld, sharePrice))
-import Data.Time.Calendar                   (fromGregorian)
 import Test.HUnit                           (assertEqual, Assertion)
 import Test.Framework.Providers.HUnit       (testCase)
 import Test.Framework                       (Test, testGroup)

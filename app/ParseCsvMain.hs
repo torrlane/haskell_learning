@@ -1,15 +1,14 @@
 module ParseCsvMain where
-import Utils                            (stripWhitespace, defaultWhenNull)
-import Data.Csv                         (FromRecord)
-import Data.List                        (lines, dropWhileEnd, dropWhile)
-import Data.Map as M                    (Map(..), union, empty, fromList)
 import Data.Char                        (isSpace)
+import Data.Csv                         (FromRecord)
+import Data.List                        (lines, dropWhileEnd, dropWhile, length)
+import Data.Map as M                    (Map, union, empty, fromList)
+import Lib                              (createHoldings)
+import ParseCsv                         (getShareName, parseDividends, parseTransactions, parseShareHoldings)
 import System.IO                        (putStrLn, openFile, IOMode(ReadMode), hClose, hSetBuffering, stdout, BufferMode(LineBuffering), hGetContents )
 import System.Directory                 (listDirectory, getHomeDirectory)
-import ParseCsv
 import System.FilePath                  (combine)
-import Lib                              (Transaction(..), Holding(..), createHoldings)
-import Hl.Csv.Dividend                  (Dividend(..))
+import Utils                            (stripWhitespace, defaultWhenNull)
 
 main :: IO ()
 main = do  
@@ -18,14 +17,27 @@ main = do
     home <- getHomeDirectory
     let defaultDividendFolder = home ++ "/Downloads/Dividends/"
     let defaultTransactionFolder = home ++ "/Downloads/Transactions/"
+    let defaultAccountSummaryFolder = home ++ "/Downloads/AccountSummary"
+    
     dividendsFolder <- requestFolder "Please provide a dividends folder" defaultDividendFolder
-    dividendFiles <- absolutePaths dividendsFolder $ listFilesInFolder dividendsFolder
+    dividendFiles <- listFilesInFolder dividendsFolder
     dividendsMap <- buildMap parseDividends dividendFiles 
     mapM_ (printCsvData parseDividends) dividendFiles
+
     transactionsFolder <- requestFolder "Please provide a transactions folder" defaultTransactionFolder
-    transactionFiles <- absolutePaths transactionsFolder $ listFilesInFolder transactionsFolder
+    transactionFiles <- listFilesInFolder transactionsFolder
     transactionsMap <- buildMap parseTransactions transactionFiles 
     mapM_ (printCsvData parseTransactions) transactionFiles
+    
+    accountSummaryFolder <- requestFolder "Please provide an accountSummary folder" defaultAccountSummaryFolder
+    accountSummaryFiles <- listFilesInFolder accountSummaryFolder
+    let accountSummary = head accountSummaryFiles
+    putStrLn $ "accountSummary: " ++ accountSummary
+    let shareHoldings = parseShareHoldings accountSummary
+    putStrLn $ ((show . length) shareHoldings) ++ " shareHoldings found"
+    mapM_ (putStrLn . show) shareHoldings    
+
+    putStrLn $ "Holdings"
     let holdings = createHoldings transactionsMap dividendsMap
     mapM_ (putStrLn . show) holdings
 
@@ -48,17 +60,10 @@ listFilesInFolder :: FilePath -> IO [FilePath]
 listFilesInFolder folder = do
     putStrLn $ "Reading files from folder" ++ folder
     files <- listDirectory folder
-    return files
-
-{- takes a folder and an array of files and prefixes the files with the folder to give an array of absolute paths.
- -}
-absolutePaths :: FilePath -> IO [FilePath] -> IO [FilePath]
-absolutePaths folder ioFiles = do
-    files <- ioFiles
+    --take the folder and the array of files and prefix the files with the folder to give an array of absolute paths.
     let combined = map (combine folder) files
-    return combined 
+    return combined
 
-    
 printShareName :: Maybe String -> IO()
 printShareName Nothing = putStrLn "Could not find share name"
 printShareName (Just s) = putStrLn $ "Found share: " ++ s

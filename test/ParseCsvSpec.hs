@@ -4,18 +4,19 @@ module ParseCsvSpec
     parseCsvTests 
     )
 where
-import Data.Map as Map                      (fromList)
-import Data.Time.Calendar                   (fromGregorian)
-import qualified Hl.Csv.Dividend as D       (Dividend(..))
-import qualified Hl.Csv.Transaction as T    (Transaction(..))
-import qualified Lib as A                   (Holding(..), dividends_paid_upto, parseHolding, createHoldings) 
-import ParseCsv                             (getShareName, parseShareHoldings)
-import Test.Framework                       (Test, testGroup)
-import Test.Framework.Providers.HUnit       (testCase)
-import Test.HUnit                           (assertEqual, Assertion)
-import TestUtils                            (runParseRecordTest)
-import Text.Heredoc                         (str)
-import Utils                                (toByteString, epoch)
+import Data.Map as Map                          (fromList)
+import Data.Time.Calendar                       (fromGregorian)
+import qualified Hl.Csv.Dividend as D           (Dividend(..))
+import qualified Hl.Csv.Transaction as T        (Transaction(..))
+import qualified Hl.Csv.AccountSummary as AS    (ShareHolding(ShareHolding, shareName, unitsHeld, sharePrice))
+import qualified Lib as A                       (Holding(..), dividends_paid_upto, parseHolding, createHoldings) 
+import ParseCsv                                 (getShareName, parseShareHoldings)
+import Test.Framework                           (Test, testGroup)
+import Test.Framework.Providers.HUnit           (testCase)
+import Test.HUnit                               (assertEqual, Assertion)
+import TestUtils                                (runParseRecordTest)
+import Text.Heredoc                             (str)
+import Utils                                    (toByteString, epoch)
 
 parseCsvTests :: Test
 parseCsvTests = testGroup "parseCsvTests" [
@@ -41,8 +42,9 @@ testParseShareHolding =
                           |Stock,Units held,Price (pence),Value (£),Cost (£),Gain/loss (£),Gain/loss (%),Yield,Day change (pence),Day change (%),
                           |"Aberdeen Asian Smaller Companies Investment Trust Ordinary 25p *1","192","1,032.00","1,981.44","2,012.36","-30.92","-1.54","1.02","4.50","0.44"
                           |]
+        shareHolding = AS.ShareHolding {AS.shareName = "Aberdeen Asian Smaller Companies Investment Trust Ordinary 25p *1", AS.unitsHeld = 192.0, AS.sharePrice = 1032.0}
     in
-    assertEqual "" [] $ parseShareHoldings csvContents
+    assertEqual "" [shareHolding] $ parseShareHoldings csvContents
 
 
 {-

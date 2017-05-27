@@ -12,12 +12,12 @@ data AccountSummary = AccountSummary{ date :: Day, shareHoldings :: [ShareHoldin
 
 {- contains details of how many of a particular share is held at a certain point in time, and the shareprice at that time
  -}
-data ShareHolding = ShareHolding{ shareName :: String, unitsHeld :: Int, sharePrice :: Double } deriving (Show, Eq)
+data ShareHolding = ShareHolding{ shareName :: String, unitsHeld :: Double, sharePrice :: Double } deriving (Show, Eq)
 
 
 instance FromRecord ShareHolding where
     parseRecord v
-        | length v >= 3 = ShareHolding <$> (strip (v .! 0)) <*> (parseInt <$> strip (v .! 1)) <*> (parseDouble <$> strip (v .! 2))
+        | length v >= 3 = ShareHolding <$> (strip (v .! 0)) <*> (parseDouble <$> strip (v .! 1)) <*> (parseDouble <$> strip (v .! 2))
         | length v >= 0 = mzero
 
 strip :: Parser String -> Parser String

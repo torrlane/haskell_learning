@@ -3,11 +3,10 @@ module Hl.Csv.Dividend
         Dividend(Dividend, paid_on, amount),
     )
 where
-import Utils                            ((~=), delta, toFiveDp, parseDate)
+import Utils                                    ((~=), delta, toFiveDp, parseDate)
 import Control.Monad                            (mzero)
-import Data.Time.Calendar               (Day)
-import Data.Csv                         (FromRecord(parseRecord), Parser, (.!))
-
+import Data.Time.Calendar                       (Day)
+import Data.Csv                                 (FromRecord(parseRecord), Parser, (.!))
 
 
 data Dividend = Dividend{ paid_on :: Day, amount :: Double } deriving (Read, Show)

@@ -31,11 +31,12 @@ main = do
     
     accountSummaryFolder <- requestFolder "Please provide an accountSummary folder" defaultAccountSummaryFolder
     accountSummaryFiles <- listFilesInFolder accountSummaryFolder
-    let accountSummary = head accountSummaryFiles
-    putStrLn $ "accountSummary: " ++ accountSummary
-    let shareHoldings = parseShareHoldings accountSummary
+    let accountSummaryFile = head accountSummaryFiles
+    putStrLn $ "accountSummaryFile: " ++ accountSummaryFile
+    contents <- readFile accountSummaryFile
+    let shareHoldings = parseShareHoldings contents
     putStrLn $ ((show . length) shareHoldings) ++ " shareHoldings found"
-    mapM_ (putStrLn . show) shareHoldings    
+    mapM_ (putStrLn . show ) shareHoldings    
 
     putStrLn $ "Holdings"
     let holdings = createHoldings transactionsMap dividendsMap
@@ -81,9 +82,7 @@ buildMap parser fs = foldl acc (return M.empty) fs
  -}
 buildMapFromCsv :: (FromRecord a) => (String -> [a]) -> FilePath -> IO (M.Map String [a])
 buildMapFromCsv parser file = do
-    putStrLn $ "reading data from: " ++ file
-    handle <- openFile file ReadMode
-    contents <- hGetContents handle  
+    contents <- readFile file
     let contentLines = lines contents
     let shareName = getShareName . head $ contentLines
     let values = parser contents
@@ -91,7 +90,6 @@ buildMapFromCsv parser file = do
     where
     mapMaybe Nothing v = empty
     mapMaybe (Just k) v = fromList [(k,v)]
-
 
 printCsvData :: (FromRecord a, Show a) => (String -> [a]) -> FilePath -> IO()
 printCsvData parser fullFileName = do

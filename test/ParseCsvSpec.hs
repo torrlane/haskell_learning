@@ -1,29 +1,50 @@
+{-# LANGUAGE  QuasiQuotes #-}
 module ParseCsvSpec
     (
     parseCsvTests 
     )
 where
+import Data.Map as Map                      (fromList)
+import Data.Time.Calendar                   (fromGregorian)
+import qualified Hl.Csv.Dividend as D       (Dividend(..))
+import qualified Hl.Csv.Transaction as T    (Transaction(..))
+import qualified Lib as A                   (Holding(..), dividends_paid_upto, parseHolding, createHoldings) 
+import ParseCsv                             (getShareName, parseShareHoldings)
 import Test.Framework                       (Test, testGroup)
 import Test.Framework.Providers.HUnit       (testCase)
 import Test.HUnit                           (assertEqual, Assertion)
-import Data.Time.Calendar                   (fromGregorian)
-import Data.Map as Map                      (fromList)
 import TestUtils                            (runParseRecordTest)
+import Text.Heredoc                         (str)
 import Utils                                (toByteString, epoch)
-import qualified Lib as A                   (Holding(..), dividends_paid_upto, parseHolding, createHoldings) 
-import qualified Hl.Csv.Dividend as D       (Dividend(..))
-import qualified Hl.Csv.Transaction as T    (Transaction(..))
-import ParseCsv                             (getShareName)
 
 parseCsvTests :: Test
 parseCsvTests = testGroup "parseCsvTests" [
         testCase "testEmptyDividendCalculation" testEmptyDividendCalculation, 
         testCase "testDividendCalculation" testDividendCalculation,
         testCase "testParseHolding" testParseHolding,
-        testCase "testCreateHoldings" testCreateHoldings
+        testCase "testCreateHoldings" testCreateHoldings,
+        testCase "testParseShareHolding" testParseShareHolding
         ]
-        
--- testParseShareHolding
+
+testParseShareHolding :: Assertion
+testParseShareHolding =
+    let csvContents = [str|HL Vantage SIPP, , , ,
+                          |Client Name:,Mr JoeBlogs, , ,
+                          |Client Number:, 1234678910, , ,
+                          |Spreadsheet created at,14-05-2017 01:38, , ,
+                          |
+                          |Stock value:,"12,345.67", , ,
+                          |Total cash:,"12,345.67", , ,
+                          |Amount available to invest:,"12,345.67", , ,
+                          |Total value:,"12,345.67", , ,
+                          |
+                          |Stock,Units held,Price (pence),Value (£),Cost (£),Gain/loss (£),Gain/loss (%),Yield,Day change (pence),Day change (%),
+                          |"Aberdeen Asian Smaller Companies Investment Trust Ordinary 25p *1","192","1,032.00","1,981.44","2,012.36","-30.92","-1.54","1.02","4.50","0.44"
+                          |]
+    in
+    assertEqual "" [] $ parseShareHoldings csvContents
+
+
 {-
  - test dividends_paid_upto returns 0 when no dividends are supplied
  -}

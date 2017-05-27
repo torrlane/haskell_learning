@@ -61,7 +61,11 @@ parseInt :: String -> Int
 parseInt s = read s :: Int
 
 parseDouble :: String -> Double
-parseDouble s = read s :: Double
+parseDouble s = read (stripChar ',' s) :: Double
+
+{- Returns the original String with all instances of Char removed -}
+stripChar :: Char -> String -> String
+stripChar c =  filter (\x -> x /= c) 
 
 stripDoubleQuotes :: String -> String
-stripDoubleQuotes xs = filter (\x -> x/= '"') xs
+stripDoubleQuotes = stripChar '\"'

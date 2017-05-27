@@ -15,6 +15,8 @@ import Utils                            (toByteString)
 runParseRecordTest :: FromRecord a => [String] -> a
 runParseRecordTest xs = fromRight' . runParser . parseRecord . record $ fmap toByteString xs
 
+{- take a list of strings that when joined by ',' would form a line of a csv file and parse it into therequired FromRecord type 
+ -}
 eitherParseRecordTest :: FromRecord a => [String] -> Either String a
 eitherParseRecordTest xs = runParser . parseRecord . record $ fmap toByteString xs
     

@@ -11,12 +11,12 @@ import Data.Csv                                 (FromRecord(parseRecord), Parser
 
 data Dividend = Dividend{ paid_on :: Day, amount :: Double } deriving (Read, Show)
 
--- equals doesn't work well for Doubles. Make Dividend an instance of Eq and use a small error when comparing the Dividend amounts
+-- equals doesn't work well for Doubles. Make Dividend an instance of Eq and use a small error when comparing the Dividend amounts
 instance Eq Dividend where
     a == b = paid_on a == paid_on b && amount a ~= amount b
 
 
-{- The zeroth field contains the date that the dividend was paid on, the 4th field the number of shares held, and the 5th field the total amount paid. We divide the total amount by the number of shares, to get a dividend amount per share (in pence, to 5 dp)
+{- The zeroth field contains the date that the dividend was paid on, the 4th field the number of shares held, and the 5th field the total amount paid. We divide the total amount by the number of shares, to get a dividend amount per share (in pence, to 5 dp)
  -}
 instance FromRecord Dividend where
     parseRecord v

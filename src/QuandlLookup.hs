@@ -1,10 +1,10 @@
--- {-# LANGUAGE DuplicateRecordFields #-}
+-- {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
-{- The DuplicateRecordFields language extension allows records to use the same name for field labels. Without it, all the records in this module would need to have unique names for all their fields.
+{- The DuplicateRecordFields language extension allows records to use the same name for field labels. Without it, all the records in this module would need to have unique names for all their fields.
 -}
 
-{- 
- - Lookup share data using the free Quandl rest api
+{- 
+ - Lookup share data using the free Quandl rest api
  -}
 module QuandlLookup
     (
@@ -23,9 +23,9 @@ instance FromJSON Valuation where
     parseJSON = withObject "valuation" $ \o -> do
         dataset_data <- o .: "dataset_data"
         data_array <- dataset_data .: "data"
-        innerArray <- withArray "data_array" (\arr -> parseJSON (head (V.toList arr))) data_array
-        dateString <- withArray "innerArray" (\arr -> parseJSON (head (V.toList arr))) innerArray
-        price <- withArray "innerArray" (\arr -> parseJSON (head (tail (V.toList arr)))) innerArray
+        innerArray <- withArray "data_array" (parseJSON . head . V.toList) data_array
+        dateString <- withArray "innerArray" (parseJSON . head . V.toList) innerArray
+        price <- withArray "innerArray" (parseJSON . head . tail . V.toList) innerArray
         let date = parseDate dateString
         return Valuation{valued_on=date, price=price}
 

@@ -27,7 +27,7 @@ stripHeader :: Int -> String -> String
 stripHeader h = unlines . drop h . lines
 
 stripFooter :: String -> String
-stripFooter = unlines . takeWhile (\s -> not (isPrefixOf "\"Totals\"" s)) . lines
+stripFooter = unlines . takeWhile (not . isPrefixOf "\"Totals\"") . lines
 
 transactionHeader :: Int
 transactionHeader = 9
@@ -38,8 +38,8 @@ dividendHeader = 9
 shareHoldingHeader :: Int
 shareHoldingHeader = 11
 
-{- 
- - Takes a String, removes any header lines, and then parses the remaining lines into instances of Type a
+{- 
+ - Takes a String, removes any header lines, and then parses the remaining lines into instances of Type a
  -}
 decodeCsv :: FromRecord a => Int -> String -> Either String (Vector a)
 decodeCsv h str = decode NoHeader $ toLazyByteString . stripHeader h . stripFooter $ str

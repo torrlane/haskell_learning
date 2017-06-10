@@ -1,4 +1,4 @@
-module Main where 
+module Main where
 import Hl.Csv.AccountSummarySpec            (shareHoldingTests)
 import Hl.Csv.DividendSpec                  (dividendTests)
 import Hl.Csv.TransactionSpec               (transactionTests)

@@ -1,22 +1,26 @@
-{-# LANGUAGE  QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes #-}
 module ParseCsvSpec
     (
     parseCsvTests
     )
 where
-import Data.Map as Map                          (fromList)
-import Data.Time.Calendar                       (fromGregorian)
-import qualified Hl.Csv.Dividend as D           (Dividend(..))
-import qualified Hl.Csv.Transaction as T        (Transaction(..))
-import qualified Hl.Csv.AccountSummary as AS    (ShareHolding(ShareHolding, shareName, unitsHeld, sharePrice))
-import qualified Lib as A                       (Holding(..), dividends_paid_upto, parseHolding, createHoldings)
-import ParseCsv                                 (getShareName, parseShareHoldings)
-import Test.Framework                           (Test, testGroup)
-import Test.Framework.Providers.HUnit           (testCase)
-import Test.HUnit                               (assertEqual, Assertion)
-import TestUtils                                (runParseRecordTest)
-import Text.Heredoc                             (str)
-import Utils                                    (toByteString, epoch)
+import           Data.Map                       as Map (fromList)
+import           Data.Time.Calendar             (fromGregorian)
+import qualified Hl.Csv.AccountSummary          as AS (ShareHolding (ShareHolding, shareName, sharePrice, unitsHeld))
+import qualified Hl.Csv.Dividend                as D (Dividend (..))
+import qualified Hl.Csv.Transaction             as T (Transaction (..))
+import qualified Lib                            as A (Holding (..),
+                                                      createHoldings,
+                                                      dividends_paid_upto,
+                                                      parseHolding)
+import           ParseCsv                       (getShareName,
+                                                 parseShareHoldings)
+import           Test.Framework                 (Test, testGroup)
+import           Test.Framework.Providers.HUnit (testCase)
+import           Test.HUnit                     (Assertion, assertEqual)
+import           TestUtils                      (runParseRecordTest)
+import           Text.Heredoc                   (str)
+import           Utils                          (epoch, toByteString)
 
 parseCsvTests :: Test
 parseCsvTests = testGroup "parseCsvTests" [

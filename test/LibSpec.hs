@@ -3,12 +3,12 @@ module LibSpec
     libTests
     )
 where
-import Test.Framework                       (Test, testGroup)
-import Test.Framework.Providers.HUnit       (testCase)
-import Test.HUnit                           (assertEqual, Assertion)
-import Data.Time.Calendar                   (fromGregorian)
-import TestUtils                            (runParseRecordTest)
-import ParseCsv                             (getShareName)
+import           Data.Time.Calendar             (fromGregorian)
+import           ParseCsv                       (getShareName)
+import           Test.Framework                 (Test, testGroup)
+import           Test.Framework.Providers.HUnit (testCase)
+import           Test.HUnit                     (Assertion, assertEqual)
+import           TestUtils                      (runParseRecordTest)
 
 libTests :: Test
 libTests = testGroup "libTests" [
@@ -18,8 +18,8 @@ libTests = testGroup "libTests" [
         ]
 
 
-{-
- - Test that getShareName successfully extracts the share name from the csv line
+{-
+ - Test that getShareName successfully extracts the share name from the csv line
  -}
 test_getShareName_from_csvLine_1 :: Assertion
 test_getShareName_from_csvLine_1 =

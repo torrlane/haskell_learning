@@ -3,14 +3,14 @@ module Hl.Csv.AccountSummary
     ShareHolding(ShareHolding, shareName, unitsHeld, sharePrice)
     )
 where
-import Data.Time.Calendar           (Day(..))
-import Data.Csv                     (Parser, FromRecord(parseRecord), (.!))
-import Control.Monad                (mzero)
-import Utils                        (parseInt, parseDouble, stripDoubleQuotes)
+import           Control.Monad      (mzero)
+import           Data.Csv           (FromRecord (parseRecord), Parser, (.!))
+import           Data.Time.Calendar (Day (..))
+import           Utils              (parseDouble, parseInt, stripDoubleQuotes)
 
 data AccountSummary = AccountSummary{ date :: Day, shareHoldings :: [ShareHolding]}
 
-{- contains details of how many of a particular share is held at a certain point in time, and the shareprice at that time
+{- contains details of how many of a particular share is held at a certain point in time, and the shareprice at that time
  -}
 data ShareHolding = ShareHolding{ shareName :: String, unitsHeld :: Double, sharePrice :: Double } deriving (Show, Eq)
 

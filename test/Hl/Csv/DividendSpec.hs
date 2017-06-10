@@ -3,12 +3,12 @@ module Hl.Csv.DividendSpec
     dividendTests
     )
 where
-import Test.Framework                       (Test, testGroup)
-import Test.Framework.Providers.HUnit       (testCase)
-import Test.HUnit                           (assertEqual, Assertion)
-import Data.Time.Calendar                   (fromGregorian)
-import TestUtils                            (runParseRecordTest)
-import qualified Hl.Csv.Dividend as D       (Dividend(Dividend, paid_on, amount))
+import           Data.Time.Calendar             (fromGregorian)
+import qualified Hl.Csv.Dividend                as D (Dividend (Dividend, amount, paid_on))
+import           Test.Framework                 (Test, testGroup)
+import           Test.Framework.Providers.HUnit (testCase)
+import           Test.HUnit                     (Assertion, assertEqual)
+import           TestUtils                      (runParseRecordTest)
 
 
 dividendTests :: Test

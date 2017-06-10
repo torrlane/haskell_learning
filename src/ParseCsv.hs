@@ -3,18 +3,22 @@ module ParseCsv
     getShareName, parseDividends, parseTransactions, parseShareHoldings
     )
 where
-import Hl.Csv.Dividend                          (Dividend)
-import Hl.Csv.Transaction                       (Transaction)
-import Hl.Csv.AccountSummary                    (ShareHolding)
-import Utils                                    (stripWhitespace, toLazyByteString, toFiveDp, parseDate)
-import Data.List                                (null, drop, stripPrefix, isPrefixOf, takeWhile)
-import Data.Time.Calendar                       (Day)
-import Data.Time.Format                         (parseTimeOrError, defaultTimeLocale)
-import Data.Csv                                 (FromRecord(parseRecord), Parser, Record, HasHeader(NoHeader), (.!), decode)
-import Data.Either.Combinators                  (fromRight)
-import Control.Monad                            (mzero)
-import Data.Vector                              (Vector, toList, empty )
-import qualified Data.ByteString.Lazy as B      (ByteString)
+import           Control.Monad           (mzero)
+import qualified Data.ByteString.Lazy    as B (ByteString)
+import           Data.Csv                (FromRecord (parseRecord),
+                                          HasHeader (NoHeader), Parser, Record,
+                                          decode, (.!))
+import           Data.Either.Combinators (fromRight)
+import           Data.List               (drop, isPrefixOf, null, stripPrefix,
+                                          takeWhile)
+import           Data.Time.Calendar      (Day)
+import           Data.Time.Format        (defaultTimeLocale, parseTimeOrError)
+import           Data.Vector             (Vector, empty, toList)
+import           Hl.Csv.AccountSummary   (ShareHolding)
+import           Hl.Csv.Dividend         (Dividend)
+import           Hl.Csv.Transaction      (Transaction)
+import           Utils                   (parseDate, stripWhitespace, toFiveDp,
+                                          toLazyByteString)
 
 getShareName :: String -> Maybe String
 getShareName s
@@ -38,8 +42,8 @@ dividendHeader = 9
 shareHoldingHeader :: Int
 shareHoldingHeader = 11
 
-{- 
- - Takes a String, removes any header lines, and then parses the remaining lines into instances of Type a
+{-
+ - Takes a String, removes any header lines, and then parses the remaining lines into instances of Type a
  -}
 decodeCsv :: FromRecord a => Int -> String -> Either String (Vector a)
 decodeCsv h str = decode NoHeader $ toLazyByteString . stripHeader h . stripFooter $ str

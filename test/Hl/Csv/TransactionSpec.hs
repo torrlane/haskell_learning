@@ -3,12 +3,12 @@ module Hl.Csv.TransactionSpec
     transactionTests
     )
 where
-import Test.Framework                       (Test, testGroup)
-import Test.Framework.Providers.HUnit       (testCase)
-import Test.HUnit                           (assertEqual, Assertion)
-import Data.Time.Calendar                   (fromGregorian)
-import TestUtils                            (runParseRecordTest)
-import qualified Hl.Csv.Transaction as T    (Transaction(..))
+import           Data.Time.Calendar             (fromGregorian)
+import qualified Hl.Csv.Transaction             as T (Transaction (..))
+import           Test.Framework                 (Test, testGroup)
+import           Test.Framework.Providers.HUnit (testCase)
+import           Test.HUnit                     (Assertion, assertEqual)
+import           TestUtils                      (runParseRecordTest)
 
 
 transactionTests :: Test

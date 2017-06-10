@@ -1,22 +1,23 @@
--- {-# LANGUAGE DuplicateRecordFields #-}
+-- {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
-{- The DuplicateRecordFields language extension allows records to use the same name for field labels. Without it, all the records in this module would need to have unique names for all their fields.
+{- The DuplicateRecordFields language extension allows records to use the same name for field labels. Without it, all the records in this module would need to have unique names for all their fields.
 -}
 
-{- 
- - Lookup share data using the free Quandl rest api
+{-
+ - Lookup share data using the free Quandl rest api
  -}
 module QuandlLookup
     (
     someFunc
     ) where
-import Data.Time.Calendar                   (Day(..))
-import Control.Lens                         ( (^.) )
-import Data.Time.Format                     (parseTimeOrError, defaultTimeLocale)
-import qualified Data.Vector as V           (toList)
-import Network.Wreq                         (Response(..), asJSON, get, responseBody)
-import Data.Aeson                           (Value(..), FromJSON(..), (.:), (.=), withObject, withArray)
-import Lib                                  (Valuation(..))
+import           Control.Lens       ((^.))
+import           Data.Aeson         (FromJSON (..), Value (..), withArray,
+                                     withObject, (.:), (.=))
+import           Data.Time.Calendar (Day (..))
+import           Data.Time.Format   (defaultTimeLocale, parseTimeOrError)
+import qualified Data.Vector        as V (toList)
+import           Lib                (Valuation (..))
+import           Network.Wreq       (Response (..), asJSON, get, responseBody)
 
 
 instance FromJSON Valuation where

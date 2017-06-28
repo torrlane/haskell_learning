@@ -75,7 +75,7 @@ printShareName (Just s) = putStrLn $ "Found share: " ++ s
 {- Takes a parser function and a list of files and produces a map from the share name to the lists of the parsed values
  -}
 buildMap :: (FromRecord a) => (String -> [a]) -> [FilePath] -> IO (M.Map String [a])
-buildMap parser fs = foldl acc (return M.empty) fs
+buildMap parser = foldl acc (return M.empty)
     where acc ioMap f = do
             newMap <- buildMapFromCsv parser f
             accMap <- ioMap
@@ -101,7 +101,7 @@ printCsvData parser fullFileName = do
     contents <- hGetContents handle
     let contentLines = lines contents
     printShareName $ getShareName . head $ contentLines
-    mapM_ (print) (parser contents)
+    mapM_ print (parser contents)
     hClose handle
 
 

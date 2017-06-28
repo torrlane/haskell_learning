@@ -3,4 +3,5 @@
 # to install hlint run:
 # stack install hlint
 # stack install apply-refactor
-find . -type f -iname "*.hs" | xargs -I{} hlint {} --refactor --refactor-options=-i
+find . -type f -iname "*.hs" | xargs -I{} hlint {} --report --refactor --refactor-options=-i
+hlint . --report

@@ -1,10 +1,10 @@
--- {-# LANGUAGE DuplicateRecordFields #-}
+-- {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
-{- The DuplicateRecordFields language extension allows records to use the same name for field labels. Without it, all the records in this module would need to have unique names for all their fields.
+{- The DuplicateRecordFields language extension allows records to use the same name for field labels. Without it, all the records in this module would need to have unique names for all their fields.
 -}
 
-{-
- - Lookup share data using the free Quandl rest api
+{-
+ - Lookup share data using the free Quandl rest api
  -}
 module QuandlLookup
     (
@@ -28,17 +28,17 @@ instance FromJSON Valuation where
         dateString <- withArray "innerArray" (parseJSON . head . V.toList) innerArray
         price <- withArray "innerArray" (parseJSON . head . tail . V.toList) innerArray
         let date = parseDate dateString
-        return Valuation{valued_on=date, price=price}
+        return Valuation{valuedOn=date, price=price}
 
 
 parseDate s = parseTimeOrError True defaultTimeLocale "%Y-%m-%d" s :: Day
 
 someFunc = do
-    r <- asJSON =<< get quandl_url :: IO (Response Valuation)
+    r <- asJSON =<< get quandlUrl :: IO (Response Valuation)
     print $ show $ r ^. responseBody
 
-quandl_url :: String
-quandl_url = "https://www.quandl.com/api/v3/datasets/WIKI/FB/data.json?start_date=2016-10-01&end_date=2016-10-05"
+quandlUrl :: String
+quandlUrl = "https://www.quandl.com/api/v3/datasets/WIKI/FB/data.json?start_date=2016-10-01&end_date=2016-10-05"
 
 
 

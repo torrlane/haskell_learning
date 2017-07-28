@@ -20,6 +20,7 @@ import           Utils                   (listFilesInFolder, parseDate)
  - -}
 data Transaction = Transaction{ actionedOn :: Day, sharesBought:: Int, cost :: Double } deriving (Read, Show, Eq)
 
+-- | reads all the transaction files from the folder
 getTransactions :: FilePath -> IO [Transaction]
 getTransactions transactionFolder = do
         transactionFiles <- listFilesInFolder $ transactionFolder

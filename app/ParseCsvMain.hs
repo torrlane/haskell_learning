@@ -32,9 +32,6 @@ main = do
     transactionsFolder <- requestFolder "Please provide a transactions folder" defaultTransactionFolder
     transactions <- getTransactions transactionsFolder
     mapM_ print transactions
-    --transactionFiles <- listFilesInFolder transactionsFolder
-    --transactionsMap <- buildMap parseTransactions transactionFiles
-    --mapM_ (printCsvData parseTransactions) transactionFiles
 
     accountSummaryFolder <- requestFolder "Please provide an accountSummary folder" defaultAccountSummaryFolder
     accountSummaryFiles <- listFilesInFolder accountSummaryFolder

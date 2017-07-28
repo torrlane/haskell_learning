@@ -1,24 +1,47 @@
 module Hl.Csv.Transaction
     (
+    HlCsvTransactionDao(HlCsvTransactionDao), getTransactions,
     Transaction(Transaction, actionedOn, sharesBought, cost),
     numberHeld
     )
 where
-import           Control.Monad      (mzero)
-import           Data.Csv           (FromRecord (parseRecord), Parser, (.!))
-import           Data.Time.Calendar (Day)
-import           Utils              (parseDate)
+import           Control.Monad           (mzero)
+import           Data.Csv                (FromRecord (parseRecord), Parser,
+                                          (.!))
+import           Data.Either.Combinators (fromRight)
+import           Data.Time.Calendar      (Day)
+import           Data.Vector             (empty, toList)
+import           ParseCsv                (decodeCsv)
+import           Utils                   (listFilesInFolder, parseDate)
 
 
-{-
- - cost is the total cost of the Transaction, not the individual cost per unit
+{-
+ - cost is the total cost of the Transaction, not the individual cost per unit
  - -}
 data Transaction = Transaction{ actionedOn :: Day, sharesBought:: Int, cost :: Double } deriving (Read, Show, Eq)
 
+-- | A Dao interface for Transactions.
+class TransactionDao a where
+    getTransactions :: a -> IO [Transaction]
 
-{- the round is to convert from a Double i.e "123.00" to an Integer. Unfortunately, to get it to work, it needs to cast the input to a Double.
- -
- - This code is using Applicative Functor style. The <$> functions take a function from a -> b and an instance of Applicative Functor f a (say) and returns f b. Now in this case, it b is a function, so the <*>'s provide arguments to b, but wrapped in the Applicative f. It's not as complicated as it sounds!
+-- | TransactionDao where transactions are read from Hl Csv files in the transactionFolder
+data HlCsvTransactionDao = HlCsvTransactionDao{transactionFolder:: FilePath}
+
+instance TransactionDao HlCsvTransactionDao where
+    getTransactions dao = do
+        transactionFiles <- listFilesInFolder $ transactionFolder dao
+        let tss = map parseTransactions transactionFiles
+        return $ concat tss
+
+parseTransactions :: String -> [Transaction]
+parseTransactions str =  toList $ fromRight empty $ decodeCsv transactionHeader str
+
+transactionHeader :: Int
+transactionHeader = 9
+
+{- the round is to convert from a Double i.e "123.00" to an Integer. Unfortunately, to get it to work, it needs to cast the input to a Double.
+ -
+ - This code is using Applicative Functor style. The <$> functions take a function from a -> b and an instance of Applicative Functor f a (say) and returns f b. Now in this case, it b is a function, so the <*>'s provide arguments to b, but wrapped in the Applicative f. It's not as complicated as it sounds!
  -}
 instance FromRecord Transaction where
     parseRecord v

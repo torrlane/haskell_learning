@@ -1,10 +1,10 @@
--- {-# LANGUAGE DuplicateRecordFields #-}
+-- {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
-{- The DuplicateRecordFields language extension allows records to use the same name for field labels. Without it, all the records in this module would need to have unique names for all their fields.
+{- The DuplicateRecordFields language extension allows records to use the same name for field labels. Without it, all the records in this module would need to have unique names for all their fields.
 -}
 
-{-
- - Lookup share data using the free Quandl rest api
+{-
+ - Lookup share data using the free Quandl rest api
  -}
 module QuandlLookup
     (

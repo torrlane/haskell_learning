@@ -30,6 +30,8 @@ library
                      , split
                      , cassava
                      , either
+                     , directory
+                     , filepath
   default-language:    Haskell2010
 
 executable learning-exe

@@ -1,6 +1,6 @@
 module ParseCsv
     (
-    getShareName, parseDividends, parseTransactions, parseShareHoldings
+    getShareName, parseDividends, decodeCsv, parseShareHoldings
     )
 where
 import           Control.Monad           (mzero)
@@ -16,7 +16,6 @@ import           Data.Time.Format        (defaultTimeLocale, parseTimeOrError)
 import           Data.Vector             (Vector, empty, toList)
 import           Hl.Csv.AccountSummary   (ShareHolding)
 import           Hl.Csv.Dividend         (Dividend)
-import           Hl.Csv.Transaction      (Transaction)
 import           Utils                   (parseDate, stripWhitespace, toFiveDp,
                                           toLazyByteString)
 
@@ -50,9 +49,6 @@ decodeCsv h str = decode NoHeader $ toLazyByteString . stripHeader h . stripFoot
 
 parseDividends :: String -> [Dividend]
 parseDividends str = toList $ fromRight empty $ decodeCsv dividendHeader str
-
-parseTransactions :: String -> [Transaction]
-parseTransactions str =  toList $ fromRight empty $ decodeCsv transactionHeader str
 
 parseShareHoldings :: String -> [ShareHolding]
 parseShareHoldings str = toList $ fromRight empty $ decodeCsv shareHoldingHeader str

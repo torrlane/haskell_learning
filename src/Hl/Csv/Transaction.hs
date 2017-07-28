@@ -1,7 +1,7 @@
 module Hl.Csv.Transaction
     (
-    HlCsvTransactionDao(HlCsvTransactionDao), getTransactions,
     Transaction(Transaction, actionedOn, sharesBought, cost),
+    getTransactions,
     numberHeld
     )
 where
@@ -20,16 +20,9 @@ import           Utils                   (listFilesInFolder, parseDate)
  - -}
 data Transaction = Transaction{ actionedOn :: Day, sharesBought:: Int, cost :: Double } deriving (Read, Show, Eq)
 
--- | A Dao interface for Transactions.
-class TransactionDao a where
-    getTransactions :: a -> IO [Transaction]
-
--- | TransactionDao where transactions are read from Hl Csv files in the transactionFolder
-data HlCsvTransactionDao = HlCsvTransactionDao{transactionFolder:: FilePath}
-
-instance TransactionDao HlCsvTransactionDao where
-    getTransactions dao = do
-        transactionFiles <- listFilesInFolder $ transactionFolder dao
+getTransactions :: FilePath -> IO [Transaction]
+getTransactions transactionFolder = do
+        transactionFiles <- listFilesInFolder $ transactionFolder
         let tss = map parseTransactions transactionFiles
         return $ concat tss
 

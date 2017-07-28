@@ -3,8 +3,7 @@ import           Data.Char          (isSpace)
 import           Data.Csv           (FromRecord)
 import           Data.List          (dropWhile, dropWhileEnd, length, lines)
 import           Data.Map           as M (Map, empty, fromList, union)
-import           Hl.Csv.Transaction (HlCsvTransactionDao (HlCsvTransactionDao),
-                                     getTransactions)
+import           Hl.Csv.Transaction (getTransactions)
 import           Lib                (createHoldings)
 import           ParseCsv           (getShareName, parseDividends,
                                      parseShareHoldings)
@@ -31,8 +30,7 @@ main = do
     mapM_ (printCsvData parseDividends) dividendFiles
 
     transactionsFolder <- requestFolder "Please provide a transactions folder" defaultTransactionFolder
-    let transactionDao = HlCsvTransactionDao transactionsFolder
-    transactions <- getTransactions transactionDao
+    transactions <- getTransactions transactionsFolder
     mapM_ print transactions
     --transactionFiles <- listFilesInFolder transactionsFolder
     --transactionsMap <- buildMap parseTransactions transactionFiles

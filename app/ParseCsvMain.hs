@@ -61,13 +61,3 @@ requestFolder prompt dfault = do
     let folder = stripWhitespace $ defaultWhenNull dfault input
     return folder
 
-
-printShareName :: Maybe String -> IO()
-printShareName Nothing  = putStrLn "Could not find share name"
-printShareName (Just s) = putStrLn $ "Found share: " ++ s
-
-
-
-
-
-

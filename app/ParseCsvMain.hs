@@ -2,10 +2,11 @@ module ParseCsvMain where
 import           Data.Char          (isSpace)
 import           Data.Csv           (FromRecord)
 import           Data.List          (dropWhile, dropWhileEnd, length, lines)
-import           Data.Map           as M (Map, empty, fromList, union)
+import           Data.Map           as M (Map, empty, fromList, keys, union, foldrWithKey)
+import           Hl.Csv.Dividend    (Dividend, getDividends)
 import           Hl.Csv.Transaction (getTransactions)
 import           Lib                (createHoldings)
-import           ParseCsv           (getShareName, parseDividends,
+import           ParseCsv           (getShareName,
                                      parseShareHoldings)
 import           System.Directory   (getHomeDirectory, listDirectory)
 import           System.FilePath    (combine)
@@ -25,13 +26,11 @@ main = do
     let defaultAccountSummaryFolder = home ++ "/Downloads/AccountSummary"
 
     dividendsFolder <- requestFolder "Please provide a dividends folder" defaultDividendFolder
-    dividendFiles <- listFilesInFolder dividendsFolder
-    dividendsMap <- buildMap parseDividends dividendFiles
-    mapM_ (printCsvData parseDividends) dividendFiles
+    dividendsMap <- getDividends dividendsFolder
+    putStrLn $ printableDividends dividendsMap
 
     transactionsFolder <- requestFolder "Please provide a transactions folder" defaultTransactionFolder
     transactions <- getTransactions transactionsFolder
-    mapM_ print transactions
 
     accountSummaryFolder <- requestFolder "Please provide an accountSummary folder" defaultAccountSummaryFolder
     accountSummaryFiles <- listFilesInFolder accountSummaryFolder
@@ -45,7 +44,11 @@ main = do
     --putStrLn "Holdings"
     --let holdings = createHoldings transactionsMap dividendsMap
     --mapM_ print holdings
-
+printableDividends :: M.Map String [Dividend] -> String
+printableDividends ds = foldrWithKey entryToString "" ds
+    where entryToString share ds acc = acc ++ (shareTitle share) ++ (dividends ds)  
+          shareTitle share = "dividends for " ++ share ++ "\n"
+          dividends ds = concat $ map (\d -> show d ++ "\n") ds
 
 {-
  - Takes a question to ask the user i.e "please provide a folder", and a default value.
@@ -63,37 +66,7 @@ printShareName :: Maybe String -> IO()
 printShareName Nothing  = putStrLn "Could not find share name"
 printShareName (Just s) = putStrLn $ "Found share: " ++ s
 
-{- Takes a parser function and a list of files and produces a map from the share name to the lists of the parsed values
- -}
-buildMap :: (FromRecord a) => (String -> [a]) -> [FilePath] -> IO (M.Map String [a])
-buildMap parser = foldl acc (return M.empty)
-    where acc ioMap f = do
-            newMap <- buildMapFromCsv parser f
-            accMap <- ioMap
-            return $ union accMap newMap
 
-{- takes a csv file and returns a map from the sharename to a list of dividends/transactions/... from the file
- -}
-buildMapFromCsv :: (FromRecord a) => (String -> [a]) -> FilePath -> IO (M.Map String [a])
-buildMapFromCsv parser file = do
-    contents <- readFile file
-    let contentLines = lines contents
-    let shareName = getShareName . head $ contentLines
-    let values = parser contents
-    return $ mapMaybe shareName values
-    where
-    mapMaybe Nothing v  = empty
-    mapMaybe (Just k) v = fromList [(k,v)]
-
-printCsvData :: (FromRecord a, Show a) => (String -> [a]) -> FilePath -> IO()
-printCsvData parser fullFileName = do
-    putStrLn $ "reading data from " ++ fullFileName
-    handle <- openFile fullFileName ReadMode
-    contents <- hGetContents handle
-    let contentLines = lines contents
-    printShareName $ getShareName . head $ contentLines
-    mapM_ print (parser contents)
-    hClose handle
 
 
 

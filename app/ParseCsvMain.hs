@@ -22,18 +22,21 @@ main = do
     hSetBuffering stdout LineBuffering
     home <- getHomeDirectory
     let defaultDividendFolder = home ++ "/Downloads/Dividends/"
+    let dividendPrompt = "Pleade provide a dividends folder"
     let defaultTransactionFolder = home ++ "/Downloads/Transactions/"
+    let transactionPrompt = "Please provide a transactions folder"
     let defaultAccountSummaryFolder = home ++ "/Downloads/AccountSummary"
+    let accountSummaryPrompt = "Please provide an accountSummary folder"
 
-    dividendsFolder <- questionWithDefault "Please provide a dividends folder" defaultDividendFolder
+    dividendsFolder <- questionWithDefault dividendPrompt defaultDividendFolder
     dividendsMap <- getDividends dividendsFolder
     putStrLn $ showDividendsMap dividendsMap
 
-    transactionsFolder <- questionWithDefault "Please provide a transactions folder" defaultTransactionFolder
+    transactionsFolder <- questionWithDefault transactionPrompt defaultTransactionFolder
     transactions <- getTransactions transactionsFolder
     mapM_ print transactions
 
-    accountSummaryFolder <- questionWithDefault "Please provide an accountSummary folder" defaultAccountSummaryFolder
+    accountSummaryFolder <- questionWithDefault accountSummaryFolder defaultAccountSummaryFolder
     accountSummaryFiles <- listFilesInFolder accountSummaryFolder
     let accountSummaryFile = head accountSummaryFiles
     putStrLn $ "accountSummaryFile: " ++ accountSummaryFile

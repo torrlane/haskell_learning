@@ -25,14 +25,16 @@ main = do
     let defaultTransactionFolder = home ++ "/Downloads/Transactions/"
     let defaultAccountSummaryFolder = home ++ "/Downloads/AccountSummary"
 
-    dividendsFolder <- requestFolder "Please provide a dividends folder" defaultDividendFolder
+    dividendsFolder <- questionWithDefault "Please provide a dividends folder" defaultDividendFolder
     dividendsMap <- getDividends dividendsFolder
-    putStrLn $ printableDividends dividendsMap
+    putStrLn $ showDividendsMap dividendsMap
 
-    transactionsFolder <- requestFolder "Please provide a transactions folder" defaultTransactionFolder
+    transactionsFolder <- questionWithDefault "Please provide a transactions folder" defaultTransactionFolder
     transactions <- getTransactions transactionsFolder
+    putStrLn $ "printing transactions" ++ ((show . length) transactions)
+    mapM_ print transactions
 
-    accountSummaryFolder <- requestFolder "Please provide an accountSummary folder" defaultAccountSummaryFolder
+    accountSummaryFolder <- questionWithDefault "Please provide an accountSummary folder" defaultAccountSummaryFolder
     accountSummaryFiles <- listFilesInFolder accountSummaryFolder
     let accountSummaryFile = head accountSummaryFiles
     putStrLn $ "accountSummaryFile: " ++ accountSummaryFile
@@ -44,20 +46,20 @@ main = do
     --putStrLn "Holdings"
     --let holdings = createHoldings transactionsMap dividendsMap
     --mapM_ print holdings
-printableDividends :: M.Map String [Dividend] -> String
-printableDividends ds = foldrWithKey entryToString "" ds
-    where entryToString share ds acc = acc ++ (shareTitle share) ++ (dividends ds)  
+showDividendsMap :: M.Map String [Dividend] -> String
+showDividendsMap ds = foldrWithKey entryToString "" ds
+    where entryToString share ds acc = acc ++ (shareTitle share) ++ (showDividends ds)  
           shareTitle share = "dividends for " ++ share ++ "\n"
-          dividends ds = concat $ map (\d -> show d ++ "\n") ds
+          showDividends ds = concat $ map (\d -> show d ++ "\n") ds
 
 {-
  - Takes a question to ask the user i.e "please provide a folder", and a default value.
  - Asks the user the question an returns their answer or the default if they answered with null.
  -}
-requestFolder :: String -> String -> IO FilePath
-requestFolder prompt dfault = do
-    putStrLn $ prompt ++ " [" ++ dfault ++ "]"
+questionWithDefault :: String -> String -> IO String
+questionWithDefault question dfault = do
+    putStrLn $ question ++ " [" ++ dfault ++ "]"
     input <- getLine
-    let folder = stripWhitespace $ defaultWhenNull dfault input
-    return folder
+    let answer = stripWhitespace $ defaultWhenNull dfault input
+    return answer
 

@@ -36,7 +36,7 @@ main = do
     transactions <- getTransactions transactionsFolder
     mapM_ print transactions
 
-    accountSummaryFolder <- questionWithDefault accountSummaryFolder defaultAccountSummaryFolder
+    accountSummaryFolder <- questionWithDefault accountSummaryPrompt defaultAccountSummaryFolder
     accountSummaryFiles <- listFilesInFolder accountSummaryFolder
     let accountSummaryFile = head accountSummaryFiles
     putStrLn $ "accountSummaryFile: " ++ accountSummaryFile

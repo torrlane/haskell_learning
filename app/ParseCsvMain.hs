@@ -31,7 +31,6 @@ main = do
 
     transactionsFolder <- questionWithDefault "Please provide a transactions folder" defaultTransactionFolder
     transactions <- getTransactions transactionsFolder
-    putStrLn $ "printing transactions" ++ ((show . length) transactions)
     mapM_ print transactions
 
     accountSummaryFolder <- questionWithDefault "Please provide an accountSummary folder" defaultAccountSummaryFolder

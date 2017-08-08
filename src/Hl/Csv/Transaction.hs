@@ -24,7 +24,8 @@ data Transaction = Transaction{ actionedOn :: Day, sharesBought:: Int, cost :: D
 getTransactions :: FilePath -> IO [Transaction]
 getTransactions transactionFolder = do
         transactionFiles <- listFilesInFolder $ transactionFolder
-        let tss = map parseTransactions transactionFiles
+        fileContents <- sequence $ map readFile transactionFiles
+        let tss = map parseTransactions fileContents
         return $ concat tss
 
 parseTransactions :: String -> [Transaction]

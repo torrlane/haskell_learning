@@ -11,7 +11,7 @@ import           Data.Either.Combinators (fromRight)
 import           Data.Map                as M (Map, empty, fromList, union)
 import           Data.Time.Calendar      (Day)
 import           Data.Vector             as V (empty, toList)
-import           ParseCsv                (decodeCsv, getShareName)
+import           ParseCsv                (buildMap, decodeCsv, getShareName)
 import           Utils                   (delta, listFilesInFolder, parseDate,
                                           toFiveDp, (~=))
 
@@ -25,31 +25,23 @@ instance Eq Dividend where
 getDividends :: FilePath -> IO (M.Map String [Dividend])
 getDividends dividendsFolder = do
     dividendFiles <- listFilesInFolder dividendsFolder
-    buildMap parseDividends dividendFiles
+    buildMap parseDividendsFromFile dividendFiles
 
-{- Takes a parser function and a list of files and produces a map from the share name to the lists of the parsed values
- -}
-buildMap :: (FromRecord a) => (String -> [a]) -> [FilePath] -> IO (M.Map String [a])
-buildMap parser = foldl acc (return M.empty)
-    where acc ioMap f = do
-            newMap <- buildMapFromCsv parser f
-            accMap <- ioMap
-            return $ union accMap newMap
+parseDividends :: String -> [Dividend]
+parseDividends str = V.toList $ fromRight V.empty $ decodeCsv dividendHeader str
+
 {- takes a csv file and returns a map from the sharename to a list of dividends/transactions/... from the file
  -}
-buildMapFromCsv :: (FromRecord a) => (String -> [a]) -> FilePath -> IO (M.Map String [a])
-buildMapFromCsv parser file = do
+parseDividendsFromFile :: FilePath -> IO (M.Map String [Dividend])
+parseDividendsFromFile file = do
     contents <- readFile file
     let contentLines = lines contents
     let shareName = getShareName . head $ contentLines
-    let values = parser contents
+    let values = parseDividends contents
     return $ mapMaybe shareName values
     where
     mapMaybe Nothing v  = M.empty
     mapMaybe (Just k) v = fromList [(k,v)]
-
-parseDividends :: String -> [Dividend]
-parseDividends str = V.toList $ fromRight V.empty $ decodeCsv dividendHeader str
 
 dividendHeader :: Int
 dividendHeader = 9

@@ -4,7 +4,7 @@ import           Data.Csv           (FromRecord)
 import           Data.List          (dropWhile, dropWhileEnd, length, lines)
 import           Data.Map           as M (Map, empty, fromList, keys, union, foldrWithKey)
 import           Hl.Csv.Dividend    (Dividend, getDividends)
-import           Hl.Csv.Transaction (getTransactions)
+import           Hl.Csv.Transaction (Transaction, getTransactions)
 import           Lib                (createHoldings)
 import           ParseCsv           (getShareName,
                                      parseShareHoldings)
@@ -30,11 +30,11 @@ main = do
 
     dividendsFolder <- questionWithDefault dividendPrompt defaultDividendFolder
     dividendsMap <- getDividends dividendsFolder
-    putStrLn $ showDividendsMap dividendsMap
+    putStrLn $ showShareMap dividendsMap
 
     transactionsFolder <- questionWithDefault transactionPrompt defaultTransactionFolder
-    transactions <- getTransactions transactionsFolder
-    mapM_ print transactions
+    transactionsMap <- getTransactions transactionsFolder
+    putStrLn $ showShareMap transactionsMap
 
     accountSummaryFolder <- questionWithDefault accountSummaryPrompt defaultAccountSummaryFolder
     accountSummaryFiles <- listFilesInFolder accountSummaryFolder
@@ -48,11 +48,13 @@ main = do
     --putStrLn "Holdings"
     --let holdings = createHoldings transactionsMap dividendsMap
     --mapM_ print holdings
-showDividendsMap :: M.Map String [Dividend] -> String
-showDividendsMap ds = foldrWithKey entryToString "" ds
-    where entryToString share ds acc = acc ++ (shareTitle share) ++ (showDividends ds)  
-          shareTitle share = "dividends for " ++ share ++ "\n"
-          showDividends ds = concat $ map (\d -> show d ++ "\n") ds
+
+-- | returns a string representation of the map
+showShareMap :: (Show a) => M.Map String [a] -> String
+showShareMap as = foldrWithKey entryToString "" as
+    where entryToString share as acc = acc ++ (shareTitle share) ++ (showValues as)  
+          shareTitle share = "values for " ++ share ++ "\n"
+          showValues as = concat $ map (\a -> show a ++ "\n") as
 
 {-
  - Takes a question to ask the user i.e "please provide a folder", and a default value.

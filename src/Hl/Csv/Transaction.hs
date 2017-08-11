@@ -9,9 +9,11 @@ import           Control.Monad           (mzero)
 import           Data.Csv                (FromRecord (parseRecord), Parser,
                                           (.!))
 import           Data.Either.Combinators (fromRight)
+import           Data.Map                as M (Map, empty, fromList, union)
 import           Data.Time.Calendar      (Day)
 import           Data.Vector             (empty, toList)
-import           ParseCsv                (decodeCsv)
+import           Data.Vector             as V (empty)
+import           ParseCsv                (buildMap, decodeCsv)
 import           Utils                   (listFilesInFolder, parseDate)
 
 
@@ -21,15 +23,23 @@ import           Utils                   (listFilesInFolder, parseDate)
 data Transaction = Transaction{ actionedOn :: Day, sharesBought:: Int, cost :: Double } deriving (Read, Show, Eq)
 
 -- | reads all the transaction files from the folder
-getTransactions :: FilePath -> IO [Transaction]
+getTransactions :: FilePath -> IO (M.Map String [Transaction])
 getTransactions transactionFolder = do
-        transactionFiles <- listFilesInFolder $ transactionFolder
-        fileContents <- sequence $ map readFile transactionFiles
-        let tss = map parseTransactions fileContents
-        return $ concat tss
-
+    transactionFiles <- listFilesInFolder $ transactionFolder
+    buildMap parseTransactionsFromFile transactionFiles
+    
 parseTransactions :: String -> [Transaction]
-parseTransactions str =  toList $ fromRight empty $ decodeCsv transactionHeader str
+parseTransactions str =  toList $ fromRight V.empty $ decodeCsv transactionHeader str
+
+{- takes a csv file and returns a map from the sharename to a list of dividends/transactions/... from the file
+ -}
+parseTransactionsFromFile :: FilePath -> IO (M.Map String [Transaction])
+parseTransactionsFromFile file = do
+    contents <- readFile file
+    let contentLines = lines contents
+    let shareName = file
+    let values = parseTransactions contents
+    return $ fromList [(shareName, values)]
 
 transactionHeader :: Int
 transactionHeader = 9

@@ -13,7 +13,7 @@ import           Data.Map                as M (Map, empty, fromList, union)
 import           Data.Time.Calendar      (Day)
 import           Data.Vector             (empty, toList)
 import           Data.Vector             as V (empty)
-import           ParseCsv                (buildMap, decodeCsv)
+import           ParseCsv                (buildMap, decodeCsv, getShareName)
 import           Utils                   (listFilesInFolder, parseDate)
 
 
@@ -37,9 +37,12 @@ parseTransactionsFromFile :: FilePath -> IO (M.Map String [Transaction])
 parseTransactionsFromFile file = do
     contents <- readFile file
     let contentLines = lines contents
-    let shareName = file
+    let shareName = getShareName . head $ contentLines
     let values = parseTransactions contents
-    return $ fromList [(shareName, values)]
+    return $ mapMaybe shareName values
+    where
+    mapMaybe Nothing v  = M.empty
+    mapMaybe (Just k) v = fromList [(k,v)]
 
 transactionHeader :: Int
 transactionHeader = 9

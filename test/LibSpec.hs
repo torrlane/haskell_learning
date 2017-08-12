@@ -18,8 +18,8 @@ libTests = testGroup "libTests" [
         ]
 
 
-{-
- - Test that getShareName successfully extracts the share name from the csv line
+{-
+ - Test that getShareName successfully extracts the share name from the csv line
  -}
 test_getShareName_from_csvLine_1 :: Assertion
 test_getShareName_from_csvLine_1 =

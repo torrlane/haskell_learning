@@ -48,16 +48,13 @@ main = do
  - sharePriceProfit :: Transaction -> AccountSummary -> amount
  - calculate the total profit on the shareprice for a transaction (using the latest accountSummary to find the end price)
  -}
-    --putStrLn "Holdings"
-    --let holdings = createHoldings transactionsMap dividendsMap
-    --mapM_ print holdings
 
 -- | returns a string representation of a map from Share to an array of type 'a'
 showShareMap :: (Show a) => M.Map String [a] -> String
 showShareMap as = foldrWithKey entryToString "" as
     where entryToString share as acc = acc ++ (shareTitle share) ++ (showValues as)  
           shareTitle share = "values for " ++ share ++ "\n"
-          showValues as = concat $ map (\a -> show a ++ "\n") as
+          showValues as = concatMap ((++"\n") . show) as
 
 {-
  - Takes a question to ask the user i.e "please provide a folder", and a default value.

@@ -1,13 +1,13 @@
 module ParseCsvMain where
 import           Data.Char          (isSpace)
 import           Data.Csv           (FromRecord)
-import           Data.List          (dropWhile, dropWhileEnd, length, lines)
+import           Data.List          (concatMap, dropWhile, dropWhileEnd, length, lines)
 import           Data.Map           as M (Map, empty, fromList, keys, union, foldrWithKey)
 import           Hl.Csv.Dividend    (Dividend, getDividends)
 import           Hl.Csv.Transaction (Transaction, getTransactions)
+import           Hl.Csv.AccountSummary (getAccountSummaries)
 import           Lib                (createHoldings)
-import           ParseCsv           (getShareName,
-                                     parseShareHoldings)
+import           ParseCsv           (getShareName)
 import           System.Directory   (getHomeDirectory, listDirectory)
 import           System.FilePath    (combine)
 import           System.IO          (BufferMode (LineBuffering),
@@ -37,19 +37,22 @@ main = do
     putStrLn $ showShareMap transactionsMap
 
     accountSummaryFolder <- questionWithDefault accountSummaryPrompt defaultAccountSummaryFolder
-    accountSummaryFiles <- listFilesInFolder accountSummaryFolder
-    let accountSummaryFile = head accountSummaryFiles
-    putStrLn $ "accountSummaryFile: " ++ accountSummaryFile
-    contents <- readFile accountSummaryFile
-    let shareHoldings = parseShareHoldings contents
-    putStrLn $ (show . length) shareHoldings ++ " shareHoldings found"
-    mapM_ print shareHoldings
+    accountSummaries <- getAccountSummaries accountSummaryFolder
+    putStrLn $ concatMap ((++"\n\n") . show) accountSummaries
 
+{-
+ - accountSummaries provide share values i.e. how much a share is worth at a particular point in time.
+ - calculate the total amount of dividends paid for a transaction
+ -
+ - dividendsPaid :: Transaction -> [Dividend] -> amount // let's not worry about share sales.
+ - sharePriceProfit :: Transaction -> AccountSummary -> amount
+ - calculate the total profit on the shareprice for a transaction (using the latest accountSummary to find the end price)
+ -}
     --putStrLn "Holdings"
     --let holdings = createHoldings transactionsMap dividendsMap
     --mapM_ print holdings
 
--- | returns a string representation of the map
+-- | returns a string representation of a map from Share to an array of type 'a'
 showShareMap :: (Show a) => M.Map String [a] -> String
 showShareMap as = foldrWithKey entryToString "" as
     where entryToString share as acc = acc ++ (shareTitle share) ++ (showValues as)  
@@ -58,7 +61,7 @@ showShareMap as = foldrWithKey entryToString "" as
 
 {-
  - Takes a question to ask the user i.e "please provide a folder", and a default value.
- - Asks the user the question an returns their answer or the default if they answered with null.
+ - Asks the user the question and returns their answer or the default if they answered with null.
  -}
 questionWithDefault :: String -> String -> IO String
 questionWithDefault question dfault = do

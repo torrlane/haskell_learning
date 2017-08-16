@@ -1,6 +1,6 @@
 module ParseCsv
     (
-    buildMap, getShareName, decodeCsv, parseShareHoldings
+    buildMap, getShareName, decodeCsv
     )
 where
 import           Control.Monad           (mzero)
@@ -16,7 +16,6 @@ import           Data.Time.Calendar      (Day)
 import           Data.Time.Format        (defaultTimeLocale, parseTimeOrError)
 import           Data.Vector             (Vector, toList)
 import           Data.Vector             as V (empty)
-import           Hl.Csv.AccountSummary   (ShareHolding)
 import           Utils                   (parseDate, stripWhitespace, toFiveDp,
                                           toLazyByteString)
 
@@ -33,13 +32,6 @@ stripHeader h = unlines . drop h . lines
 stripFooter :: String -> String
 stripFooter = unlines . takeWhile (not . isPrefixOf "\"Totals\"") . lines
 
-transactionHeader :: Int
-transactionHeader = 9
-
-shareHoldingHeader :: Int
-shareHoldingHeader = 11
-
-
 {- Takes a parser function and a list of files and produces a map from the share name to the lists of the parsed values
  -}
 buildMap :: (FromRecord a) => (FilePath -> IO (M.Map String [a])) -> [FilePath] -> IO (M.Map String [a])
@@ -55,5 +47,3 @@ buildMap parseFile = foldl acc (return M.empty)
 decodeCsv :: FromRecord a => Int -> String -> Either String (Vector a)
 decodeCsv h str = decode NoHeader $ toLazyByteString . stripHeader h . stripFooter $ str
 
-parseShareHoldings :: String -> [ShareHolding]
-parseShareHoldings str = toList $ fromRight V.empty $ decodeCsv shareHoldingHeader str

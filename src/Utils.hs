@@ -1,6 +1,6 @@
 module Utils
     (
-    stripWhitespace, toByteString, toLazyByteString, epoch, toFiveDp, defaultWhenNull, parseInt, parseDouble, stripDoubleQuotes, (~=), delta, parseDate, listFilesInFolder
+    stripWhitespace, toByteString, toLazyByteString, epoch, toFiveDp, defaultWhenNull, parseInt, parseDouble, stripDoubleQuotes, (~=), delta, parseDate, listFilesInFolder, parseDateWithFormat
     )
 where
 import qualified Data.ByteString         as B (ByteString (..))
@@ -57,7 +57,10 @@ defaultWhenNull :: String -> String -> String
 defaultWhenNull dfault str = if null str then dfault else str
 
 parseDate :: String -> Day
-parseDate s = parseTimeOrError True defaultTimeLocale "%d/%m/%Y" s :: Day
+parseDate s = parseDateWithFormat "%d/%m/%Y" s
+
+parseDateWithFormat :: String -> String -> Day
+parseDateWithFormat f s = parseTimeOrError True defaultTimeLocale f s :: Day
 
 parseInt :: String -> Int
 parseInt s = read s :: Int

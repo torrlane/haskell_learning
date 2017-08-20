@@ -1,6 +1,9 @@
 module Hl.Csv.AccountSummary
     (
+    AccountSummary(date),
     ShareHolding(ShareHolding, shareName, unitsHeld, sharePrice),
+    findShareHolding,
+    holdingValue,
     getAccountSummaries
     )
 where
@@ -15,8 +18,19 @@ import           Utils              (listFilesInFolder, parseDateWithFormat, par
 
 data AccountSummary = AccountSummary{ date :: Day, shareHoldings :: [ShareHolding]} deriving (Show, Eq)
 
--- | contains details of how many of a particular share is held at a certain point in time, and the shareprice at that time
+-- | contains details of how many of a particular share is held at a certain point in time, and the shareprice(in pence) at that time
 data ShareHolding = ShareHolding{ shareName :: String, unitsHeld :: Double, sharePrice :: Double } deriving (Show, Eq)
+
+-- | the total value of the holding (in pounds) e.g. sharePrice * unitsHeld / 100
+holdingValue :: ShareHolding -> Double
+holdingValue (ShareHolding{unitsHeld=h, sharePrice=p}) = (h * p)/100
+
+-- | takes a name of a share and an AccountSummary and returns the first ShareHolding
+-- where the name of the share in the ShareHolding is a prefix of the input String.
+-- This is because the HL AccountSummary adds stuff like "25 *1" to the shareName.
+findShareHolding :: String -> AccountSummary -> Maybe ShareHolding
+findShareHolding share (AccountSummary{shareHoldings=shs}) = find (\s -> isPrefixOf share (shareName s)) shs
+
 
 getAccountSummaries :: FilePath -> IO [AccountSummary]
 getAccountSummaries accountSummariesFolder = do
@@ -27,6 +41,8 @@ getAccountSummaries accountSummariesFolder = do
     let accountSummaryArgs = zip accountSummaryDates shareHoldingLists
     return $ map (\(d,ss) -> AccountSummary{date = d, shareHoldings = ss}) accountSummaryArgs
 
+-- | takes the csv content of the accountSummary and extracts the date
+-- TODO - this returns the epoch date if there are problems with parsing. It should return an Either.
 getAccountSummaryDate :: String -> Day
 getAccountSummaryDate content = parseDateWithFormat "%d-%m-%Y" unparsed
     where prefix = "Spreadsheet created at,"
@@ -49,4 +65,5 @@ instance FromRecord ShareHolding where
 strip :: Parser String -> Parser String
 strip p = stripDoubleQuotes <$> p
 
--- | TODO getShareHolding on Date, for share - search for shareholdings where the search string is a prefix of the shareName. This is because the accountSummary adds stuff like "25 *1" to the end of the sharename.
+
+

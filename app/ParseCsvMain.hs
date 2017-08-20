@@ -2,10 +2,10 @@ module ParseCsvMain where
 import           Data.Char          (isSpace)
 import           Data.Csv           (FromRecord)
 import           Data.List          (concatMap, dropWhile, dropWhileEnd, length, lines)
-import           Data.Map           as M (Map, empty, fromList, keys, union, foldrWithKey)
-import           Hl.Csv.Dividend    (Dividend, getDividends)
-import           Hl.Csv.Transaction (Transaction, getTransactions)
-import           Hl.Csv.AccountSummary (getAccountSummaries)
+import           Data.Map           as M (Map, empty, fromList, findWithDefault, keys, union, foldrWithKey, toList)
+import           Hl.Csv.Dividend    (Dividend, amount, getDividends, paidOn)
+import           Hl.Csv.Transaction (Transaction(cost), actionedOn, getTransactions)
+import           Hl.Csv.AccountSummary (AccountSummary, ShareHolding, date, findShareHolding, getAccountSummaries, holdingValue)
 import           Lib                (createHoldings)
 import           ParseCsv           (getShareName)
 import           System.Directory   (getHomeDirectory, listDirectory)
@@ -14,7 +14,7 @@ import           System.IO          (BufferMode (LineBuffering),
                                      IOMode (ReadMode), hClose, hGetContents,
                                      hSetBuffering, openFile, putStrLn, stdout)
 import           Utils              (defaultWhenNull, listFilesInFolder,
-                                     stripWhitespace)
+                                     stripWhitespace, toTwoDp)
 
 main :: IO ()
 main = do
@@ -40,7 +40,45 @@ main = do
     accountSummaries <- getAccountSummaries accountSummaryFolder
     putStrLn $ concatMap ((++"\n\n") . show) accountSummaries
 
+    let shareTransactions = M.toList transactionsMap
+    let divs = \s -> M.findWithDefault [] s dividendsMap
+    let shareTransactionDividends = map (\(s, ts) -> (s, ts, divs s)) shareTransactions
+
+    let as = head accountSummaries
+    putStrLn "Share\t\t\t\t\t\t\tPriceProfit\tdividendProfit\ttotal"
+    mapM_ putStrLn $ map (showProfit as) shareTransactionDividends
+    --putStrLn $ concatMap ((++"\n\n") . show) shareTransactionDividends
+
+
+showProfit :: AccountSummary -> (String, [Transaction], [Dividend]) -> String
+showProfit as (s, [], ds) = "\n"
+showProfit as (s, (t:ts), ds) = 
+    let mshareHolding = findShareHolding s as
+    in
+    case mshareHolding of Nothing -> "\n"
+                          Just sh -> s ++ "\t" ++ (showR (priceProfit sh)) ++ "\t\t" ++ (showR dividendProfit) ++ "\t\t" ++ (showR (totalProfit sh) )
+    where dividendProfit = (transactionDividendProfit t as ds)
+          priceProfit sh = (transactionPriceProfit t sh)
+          totalProfit sh = dividendProfit + (priceProfit sh)
+          showR d = show (toTwoDp d)
+                          
+
+    
+
+-- | Calculate the profit from the transaction based purely on the share price change
+transactionPriceProfit :: Transaction -> ShareHolding -> Double
+transactionPriceProfit t s = (holdingValue s) - (cost t)
+
+-- | Calculate the profit from the Dividends for the transaction.
+transactionDividendProfit :: Transaction -> AccountSummary -> [Dividend] -> Double
+transactionDividendProfit t as ds = sum $ filter inDateRange ds
+    where sum = foldl (\v d -> v + (amount d)) 0
+          inDateRange = (\d -> (paidOn d) > (actionedOn t) && (paidOn d) < (date as))
 {-
+ - for each transaction, get all the dividends for that transaction
+ - then get the accountSummary/shareHOlding for the share - the name in the transaction is a prefix of the share name in the accountSummary 
+ - then using the shareholding and the transaction, calculate the gain/loss of the shareprice
+ - then using the dividends and the date of the transaction/shareholding, calculate the dividends paid 
  - accountSummaries provide share values i.e. how much a share is worth at a particular point in time.
  - calculate the total amount of dividends paid for a transaction
  -

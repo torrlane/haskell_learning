@@ -1,6 +1,6 @@
 module Utils
     (
-    stripWhitespace, toByteString, toLazyByteString, epoch, toFiveDp, defaultWhenNull, parseInt, parseDouble, stripDoubleQuotes, (~=), delta, parseDate, listFilesInFolder, parseDateWithFormat
+    stripWhitespace, toByteString, toLazyByteString, epoch, toFiveDp, toTwoDp, defaultWhenNull, parseInt, parseDouble, stripDoubleQuotes, (~=), delta, parseDate, listFilesInFolder, parseDateWithFormat
     )
 where
 import qualified Data.ByteString         as B (ByteString (..))
@@ -44,12 +44,13 @@ toLazyByteString = BB.toLazyByteString . BB.stringUtf8
 epoch :: Day
 epoch = fromGregorian 1970 1 1
 
-{-
- - Rounds the input to 5 decimal places
- -}
+
+-- | Rounds the input to 5 decimal places
 toFiveDp :: Double -> Double
 toFiveDp d = (/100000) $ fromIntegral $ round (d * 100000)
 
+toTwoDp :: Double -> Double
+toTwoDp d = (/100) $ fromIntegral $ round (d * 100)
 {-
  - Takes a default and a value and returns the default if value is null, the value otherwise
  -}

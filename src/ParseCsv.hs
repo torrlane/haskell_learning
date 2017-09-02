@@ -33,22 +33,19 @@ stripHeader h = unlines . drop h . lines
 stripFooter :: String -> String
 stripFooter = unlines . takeWhile (not . isPrefixOf "\"Totals\"") . lines
 
-{- Takes a parser function and a list of files and produces a map from the share name to the lists of the parsed values
+{- Takes a parser function and a list of fileContents and produces a map from the share name to the lists of the parsed values
  -}
 buildMap ::
      (FromRecord a)
-  => (FilePath -> IO (M.Map String [a]))
-  -> [FilePath]
-  -> IO (M.Map String [a])
-buildMap parseFile = foldl acc (return M.empty)
+  => (String -> M.Map String [a])
+  -> [String]
+  -> M.Map String [a]
+buildMap parseContent = foldl acc M.empty
   where
-    acc ioMap f = do
-      newMap <- parseFile f
-      accMap <- ioMap
-      return $ union accMap newMap
+    acc currentMap content = union currentMap $ parseContent content
 
-{-
- - Takes a String, removes any header lines, and then parses the remaining lines into instances of Type a
+{-
+ - Takes a String, removes any header lines, and then parses the remaining lines into instances of Type a
  -}
 decodeCsv :: FromRecord a => Int -> String -> Either String (Vector a)
 decodeCsv h str =

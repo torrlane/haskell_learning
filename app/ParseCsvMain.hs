@@ -10,11 +10,12 @@ import Data.Map as M
 import Hl.Csv.AccountSummary
        (AccountSummary, ShareHolding, date, findShareHolding,
         getAccountSummaries, holdingValue)
-import Hl.Csv.Dividend (Dividend, amount, getDividends, paidOn)
+import Hl.Csv.Dividend
+       (Dividend, amount, paidOn, parseDividendsFromString)
 import Hl.Csv.Transaction
-       (Transaction(cost), actionedOn, getTransactions)
+       (Transaction(cost), actionedOn, parseTransactionsFromString)
 import Lib (createHoldings)
-import ParseCsv (getShareName)
+import ParseCsv (buildMap, getShareName)
 import System.Directory (getHomeDirectory, listDirectory)
 import System.FilePath (combine)
 import System.IO
@@ -23,24 +24,50 @@ import System.IO
 import Utils
        (defaultWhenNull, listFilesInFolder, stripWhitespace, toTwoDp)
 
-main :: IO ()
-main = do
-  hSetBuffering stdout LineBuffering
-  home <- getHomeDirectory
+getBaseFolder :: IO FilePath
+getBaseFolder = do
   let defaultAccountName = "isa"
   let accountPrompt = "Please provide an account name"
   accountName <- questionWithDefault accountPrompt defaultAccountName
-  let baseFolder = home ++ "/Downloads/" ++ accountName
-  let defaultDividendFolder = baseFolder ++ "/Dividends/"
+  home <- getHomeDirectory
+  return $ home ++ "/Downloads/" ++ accountName
+
+getDividendsMap :: FilePath -> IO (Map String [Dividend])
+getDividendsMap baseFolder = do
+  let defaultFolder = baseFolder ++ "/Dividends/"
   let dividendPrompt = "Pleade provide a dividends folder"
-  dividendsFolder <- questionWithDefault dividendPrompt defaultDividendFolder
-  dividendsMap <- getDividends dividendsFolder
-  putStrLn $ showShareMap dividendsMap
-  let defaultTransactionFolder = baseFolder ++ "/Transactions/"
+  dividendsMap <-
+    getShareMap dividendPrompt defaultFolder parseDividendsFromString
+  return dividendsMap
+
+getTransactionsMap :: FilePath -> IO (Map String [Transaction])
+getTransactionsMap baseFolder = do
+  let defaultFolder = baseFolder ++ "/Transactions/"
   let transactionPrompt = "Please provide a transactions folder"
-  transactionsFolder <-
-    questionWithDefault transactionPrompt defaultTransactionFolder
-  transactionsMap <- getTransactions transactionsFolder
+  transactionsMap <-
+    getShareMap transactionPrompt defaultFolder parseTransactionsFromString
+  return transactionsMap
+
+getShareMap ::
+     (FromRecord a)
+  => String
+  -> FilePath
+  -> (String -> Map String [a])
+  -> IO (Map String [a])
+getShareMap prompt defaultFolder parseFromString = do
+  folder <- questionWithDefault prompt defaultFolder
+  files <- listFilesInFolder folder
+  fileContents <- mapM readFile files
+  let map = buildMap parseFromString fileContents
+  return map
+
+main :: IO ()
+main = do
+  hSetBuffering stdout LineBuffering
+  baseFolder <- getBaseFolder
+  dividendsMap <- getDividendsMap baseFolder
+  putStrLn $ showShareMap dividendsMap
+  transactionsMap <- getTransactionsMap baseFolder
   putStrLn $ showShareMap transactionsMap
   let defaultAccountSummaryFolder = baseFolder ++ "/AccountSummary"
   let accountSummaryPrompt = "Please provide an accountSummary folder"

@@ -1,7 +1,7 @@
 module Hl.Csv.Transaction
   ( Transaction(Transaction, actionedOn, sharesBought, cost)
-  , getTransactions
   , numberHeld
+  , parseTransactionsFromString
   ) where
 
 import Control.Monad (mzero)
@@ -11,8 +11,8 @@ import Data.Map as M (Map, empty, fromList, union)
 import Data.Time.Calendar (Day)
 import Data.Vector (empty, toList)
 import Data.Vector as V (empty)
-import ParseCsv (buildMap, decodeCsv, getShareName)
-import Utils (listFilesInFolder, parseDate)
+import ParseCsv (decodeCsv, getShareName)
+import Utils (parseDate)
 
 {-
  - cost is the total cost of the Transaction, not the individual cost per unit
@@ -22,13 +22,6 @@ data Transaction = Transaction
   , sharesBought :: Int
   , cost :: Double
   } deriving (Read, Show, Eq)
-
--- | reads all the transaction files from the folder
-getTransactions :: FilePath -> IO (M.Map String [Transaction])
-getTransactions transactionFolder = do
-  transactionFiles <- listFilesInFolder transactionFolder
-  fileContents <- mapM readFile transactionFiles
-  return $ buildMap parseTransactionsFromString fileContents
 
 parseTransactions :: String -> [Transaction]
 parseTransactions str =

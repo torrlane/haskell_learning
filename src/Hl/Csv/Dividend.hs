@@ -1,6 +1,6 @@
 module Hl.Csv.Dividend
   ( Dividend(Dividend, paidOn, amount)
-  , getDividends
+  , parseDividendsFromString
   ) where
 
 import Control.Monad (mzero)
@@ -9,8 +9,8 @@ import Data.Either.Combinators (fromRight)
 import Data.Map as M (Map, empty, fromList, union)
 import Data.Time.Calendar (Day)
 import Data.Vector as V (empty, toList)
-import ParseCsv (buildMap, decodeCsv, getShareName)
-import Utils ((~=), delta, listFilesInFolder, parseDate, toFiveDp)
+import ParseCsv (decodeCsv, getShareName)
+import Utils ((~=), delta, parseDate, toFiveDp)
 
 data Dividend = Dividend
   { paidOn :: Day
@@ -20,12 +20,6 @@ data Dividend = Dividend
 -- equals doesn't work well for Doubles. Make Dividend an instance of Eq and use a small error when comparing the Dividend amounts
 instance Eq Dividend where
   a == b = paidOn a == paidOn b && amount a ~= amount b
-
-getDividends :: FilePath -> IO (M.Map String [Dividend])
-getDividends dividendsFolder = do
-  dividendFiles <- listFilesInFolder dividendsFolder
-  fileContents <- mapM readFile dividendFiles
-  return $ buildMap parseDividendsFromString fileContents
 
 parseDividends :: String -> [Dividend]
 parseDividends str = V.toList $ fromRight V.empty $ decodeCsv dividendHeader str

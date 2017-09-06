@@ -9,7 +9,7 @@ import Data.Map as M
         union)
 import Hl.Csv.AccountSummary
        (AccountSummary, ShareHolding, date, findShareHolding,
-        getAccountSummaries, holdingValue)
+        holdingValue, parseAccountSummary)
 import Hl.Csv.Dividend
        (Dividend, amount, paidOn, parseDividendsFromString)
 import Hl.Csv.Transaction
@@ -61,6 +61,16 @@ getShareMap prompt defaultFolder parseFromString = do
   let map = buildMap parseFromString fileContents
   return map
 
+getAccountSummaries :: FilePath -> IO [AccountSummary]
+getAccountSummaries baseFolder = do
+  let defaultAccountSummaryFolder = baseFolder ++ "/AccountSummary"
+  let accountSummaryPrompt = "Please provide an accountSummary folder"
+  accountSummaryFolder <-
+    questionWithDefault accountSummaryPrompt defaultAccountSummaryFolder
+  accountSummaryFiles <- listFilesInFolder accountSummaryFolder
+  accountSummaryContents <- sequence $ map readFile accountSummaryFiles
+  return $ map parseAccountSummary accountSummaryContents
+
 main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
@@ -69,11 +79,7 @@ main = do
   putStrLn $ showShareMap dividendsMap
   transactionsMap <- getTransactionsMap baseFolder
   putStrLn $ showShareMap transactionsMap
-  let defaultAccountSummaryFolder = baseFolder ++ "/AccountSummary"
-  let accountSummaryPrompt = "Please provide an accountSummary folder"
-  accountSummaryFolder <-
-    questionWithDefault accountSummaryPrompt defaultAccountSummaryFolder
-  accountSummaries <- getAccountSummaries accountSummaryFolder
+  accountSummaries <- getAccountSummaries baseFolder
   putStrLn $ concatMap ((++ "\n\n") . show) accountSummaries
   let shareTransactions = M.toList transactionsMap
   let divs = \s -> M.findWithDefault [] s dividendsMap
@@ -82,7 +88,6 @@ main = do
   let as = head accountSummaries
   putStrLn "Share\t\t\t\t\t\t\tPriceProfit\tdividendProfit\ttotal"
   mapM_ (putStrLn . showProfit as) shareTransactionDividends
-    --putStrLn $ concatMap ((++"\n\n") . show) shareTransactionDividends
 
 -- set stdout to use linebuffering so that get/print IO actions work as expected
 showProfit :: AccountSummary -> (String, [Transaction], [Dividend]) -> String

@@ -4,7 +4,7 @@ module Hl.Csv.AccountSummary
     ShareHolding(ShareHolding, shareName, unitsHeld, sharePrice),
     findShareHolding,
     holdingValue,
-    getAccountSummaries
+    parseAccountSummary
     )
 where
 import           Control.Monad      (mzero)
@@ -31,15 +31,10 @@ holdingValue (ShareHolding{unitsHeld=h, sharePrice=p}) = (h * p)/100
 findShareHolding :: String -> AccountSummary -> Maybe ShareHolding
 findShareHolding share (AccountSummary{shareHoldings=shs}) = find (\s -> isPrefixOf share (shareName s)) shs
 
-
-getAccountSummaries :: FilePath -> IO [AccountSummary]
-getAccountSummaries accountSummariesFolder = do
-    accountSummaryFiles <- listFilesInFolder accountSummariesFolder
-    accountSummaryContents <- sequence $ map readFile accountSummaryFiles
-    let shareHoldingLists = map parseShareHoldings accountSummaryContents
-    let accountSummaryDates = map getAccountSummaryDate accountSummaryContents
-    let accountSummaryArgs = zip accountSummaryDates shareHoldingLists
-    return $ map (\(d,ss) -> AccountSummary{date = d, shareHoldings = ss}) accountSummaryArgs
+parseAccountSummary :: String -> AccountSummary
+parseAccountSummary accountSummaryContents = AccountSummary{date=asDate, shareHoldings = holdings}
+  where asDate = getAccountSummaryDate accountSummaryContents
+        holdings = parseShareHoldings accountSummaryContents
 
 -- | takes the csv content of the accountSummary and extracts the date
 -- TODO - this returns the epoch date if there are problems with parsing. It should return an Either.

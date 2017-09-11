@@ -91,8 +91,6 @@ main = do
   let tableHeaders = T.empty ^..^ col "Price Profit" [] ^|^ col "Dividend Profit" []
   let tableData = foldl (tabD as) tableHeaders shareTransactionDividends
   putStrLn $ render id id id tableData
-  putStrLn "Share\t\t\t\t\t\t\tPriceProfit\tdividendProfit\ttotal"
-  mapM_ (putStrLn . showProfit as) shareTransactionDividends
 
 tabD :: AccountSummary -> Table String ch String -> (String, [Transaction], [Dividend]) -> Table String ch String
 tabD as table (s, [], ds) = table
@@ -101,24 +99,6 @@ tabD as table (s, t:ts, ds) =
   in case mshareHolding of
       Nothing -> table
       Just sh -> table +.+ row s [ showR (priceProfit sh), showR dividendProfit, showR (totalProfit sh)]
-  where
-    dividendProfit = transactionDividendProfit t as ds
-    priceProfit sh = transactionPriceProfit t sh
-    totalProfit sh = dividendProfit + priceProfit sh
-    showR d = show (toTwoDp d)
-
--- set stdout to use linebuffering so that get/print IO actions work as expected
-showProfit :: AccountSummary -> (String, [Transaction], [Dividend]) -> String
-showProfit as (s, [], ds) = "\n"
-showProfit as (s, t:ts, ds) =
-  let mshareHolding = findShareHolding s as
-  in case mshareHolding of
-       Nothing -> "\n"
-       Just sh ->
-         s ++
-         "\t" ++
-         showR (priceProfit sh) ++
-         "\t\t" ++ showR dividendProfit ++ "\t\t" ++ showR (totalProfit sh)
   where
     dividendProfit = transactionDividendProfit t as ds
     priceProfit sh = transactionPriceProfit t sh

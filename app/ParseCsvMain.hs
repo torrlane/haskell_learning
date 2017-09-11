@@ -88,7 +88,7 @@ main = do
   let shareTransactionDividends =
         map (\(s, ts) -> (s, ts, divs s)) shareTransactions
   let as = head accountSummaries
-  let tableHeaders = T.empty ^..^ col "Price Profit" [] ^|^ col "Dividend Profit" []
+  let tableHeaders = T.empty ^..^ col "Price Profit" [] ^|^ col "Dividend Profit" [] ^|^ col "Total Profit" []
   let tableData = foldl (tabD as) tableHeaders shareTransactionDividends
   putStrLn $ render id id id tableData
 

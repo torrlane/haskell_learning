@@ -9,11 +9,11 @@ import Data.Map as M
         union)
 import Hl.Csv.AccountSummary
        (AccountSummary, ShareHolding, date, findShareHolding,
-        holdingValue, parseAccountSummary)
+        holdingValue, parseAccountSummary, unitsHeld)
 import Hl.Csv.Dividend
        (Dividend, amount, paidOn, parseDividendsFromString)
 import Hl.Csv.Transaction
-       (Transaction(cost), actionedOn, parseTransactionsFromString)
+       (Transaction(cost, sharesBought), actionedOn, parseTransactionsFromString)
 import Lib (createHoldings)
 import ParseCsv (buildMap, getShareName)
 import System.Directory (getHomeDirectory, listDirectory)
@@ -107,7 +107,13 @@ tabD as table (s, t:ts, ds) =
 
 -- | Calculate the profit from the transaction based purely on the share price change
 transactionPriceProfit :: Transaction -> ShareHolding -> Double
-transactionPriceProfit t s = holdingValue s - cost t
+transactionPriceProfit t s =
+  let numBought = fromInteger $ fromIntegral $ sharesBought t
+      costPerShare = (cost t) / numBought
+      pricePerShare = (holdingValue s) / (unitsHeld s)
+      profitPerShare = pricePerShare - costPerShare
+  in
+  numBought * profitPerShare
 
 -- | Calculate the profit from the Dividends for the transaction.
 transactionDividendProfit ::

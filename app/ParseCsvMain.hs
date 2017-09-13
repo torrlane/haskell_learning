@@ -3,7 +3,7 @@ module ParseCsvMain where
 import Data.Char (isSpace)
 import Data.Csv (FromRecord)
 import Data.List
-       (concatMap, dropWhile, dropWhileEnd, length, lines)
+       (concatMap, dropWhile, dropWhileEnd, filter, length, lines)
 import Data.Map as M
        (Map, empty, findWithDefault, foldrWithKey, fromList, keys, toList,
         union)
@@ -86,7 +86,7 @@ main = do
   let shareTransactions = M.toList transactionsMap
   let divs = \s -> M.findWithDefault [] s dividendsMap
   let shareTransactionDividends =
-        map (\(s, ts) -> (s, ts, divs s)) shareTransactions
+        map (\(s, ts) -> (s, filter (\t -> (fromIntegral (sharesBought t)) /= 0 ) ts, divs s)) shareTransactions
   let as = head accountSummaries
   let tableHeaders = T.empty ^..^ col "Price Profit" [] ^|^ col "Dividend Profit" [] ^|^ col "Total Profit" []
   let tableData = foldl (tabD as) tableHeaders shareTransactionDividends

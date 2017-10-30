@@ -58,7 +58,7 @@ defaultWhenNull :: String -> String -> String
 defaultWhenNull dfault str = if null str then dfault else str
 
 parseDate :: String -> Day
-parseDate s = parseDateWithFormat "%d/%m/%Y" s
+parseDate = parseDateWithFormat "%d/%m/%Y"
 
 parseDateWithFormat :: String -> String -> Day
 parseDateWithFormat f s = parseTimeOrError True defaultTimeLocale f s :: Day

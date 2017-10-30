@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib,QuandlLookup,ParseCsv,Utils, Hl.Csv.AccountSummary, Hl.Csv.Dividend, Hl.Csv.Transaction
+  exposed-modules:     Lib,QuandlLookup,ParseCsv,Utils, Hl.Csv.Model
   build-depends:       base >= 4.7 && < 5
                      , time 
                      , wreq
@@ -55,6 +55,7 @@ executable parse-csv-exe
                      , containers
                      , learning
                      , tabular
+                     , time
   default-language:    Haskell2010
 
 test-suite learning-test

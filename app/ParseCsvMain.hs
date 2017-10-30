@@ -1,30 +1,33 @@
 module ParseCsvMain where
 
-import Data.Char (isSpace)
-import Data.Csv (FromRecord)
-import Data.List
-       (concatMap, dropWhile, dropWhileEnd, filter, length, lines)
-import Data.Map as M
-       (Map, empty, findWithDefault, foldrWithKey, fromList, keys, toList,
-        union)
-import Hl.Csv.AccountSummary
-       (AccountSummary, ShareHolding, date, findShareHolding,
-        holdingValue, parseAccountSummary, unitsHeld)
-import Hl.Csv.Dividend
-       (Dividend, amount, paidOn, parseDividendsFromString)
-import Hl.Csv.Transaction
-       (Transaction(cost, sharesBought), actionedOn, parseTransactionsFromString)
-import Lib (createHoldings)
-import ParseCsv (buildMap, getShareName)
-import System.Directory (getHomeDirectory, listDirectory)
-import System.FilePath (combine)
-import System.IO
-       (BufferMode(LineBuffering), IOMode(ReadMode), hClose, hGetContents,
-        hSetBuffering, openFile, putStrLn, stdout)
-import Text.Tabular.AsciiArt (render)
-import Text.Tabular as T (Table, col, empty, row, (^..^), (^|^), (^||^), (+.+), (+----+))
-import Utils
-       (defaultWhenNull, listFilesInFolder, stripWhitespace, toTwoDp)
+import           Data.Char             (isSpace)
+import           Data.Csv              (FromRecord)
+import           Data.List             (concatMap, dropWhile, dropWhileEnd,
+                                        filter, length, lines)
+import           Data.Map              as M (Map, empty, findWithDefault,
+                                             foldrWithKey, fromList, keys,
+                                             toList, union)
+import           Data.Time.Calendar    (showGregorian)
+import           Hl.Csv.Model          (AccountSummary, Dividend, ShareHolding,
+                                        Transaction (cost, sharesBought),
+                                        actionedOn, amount, date,
+                                        findShareHolding, holdingValue, paidOn,
+                                        parseAccountSummary,
+                                        parseDividendsFromString,
+                                        parseTransactionsFromString, unitsHeld)
+import           Lib                   (createHoldings)
+import           ParseCsv              (buildMap, getShareName)
+import           System.Directory      (getHomeDirectory, listDirectory)
+import           System.FilePath       (combine)
+import           System.IO             (BufferMode (LineBuffering),
+                                        IOMode (ReadMode), hClose, hGetContents,
+                                        hSetBuffering, openFile, putStrLn,
+                                        stdout)
+import           Text.Tabular          as T (Table, col, empty, row, (+----+),
+                                             (+.+), (^..^), (^|^), (^||^))
+import           Text.Tabular.AsciiArt (render)
+import           Utils                 (defaultWhenNull, listFilesInFolder,
+                                        stripWhitespace, toTwoDp)
 
 getBaseFolder :: IO FilePath
 getBaseFolder = do
@@ -38,17 +41,13 @@ getDividendsMap :: FilePath -> IO (Map String [Dividend])
 getDividendsMap baseFolder = do
   let defaultFolder = baseFolder ++ "/Dividends/"
   let dividendPrompt = "Pleade provide a dividends folder"
-  dividendsMap <-
-    getShareMap dividendPrompt defaultFolder parseDividendsFromString
-  return dividendsMap
+  getShareMap dividendPrompt defaultFolder parseDividendsFromString
 
 getTransactionsMap :: FilePath -> IO (Map String [Transaction])
 getTransactionsMap baseFolder = do
   let defaultFolder = baseFolder ++ "/Transactions/"
   let transactionPrompt = "Please provide a transactions folder"
-  transactionsMap <-
-    getShareMap transactionPrompt defaultFolder parseTransactionsFromString
-  return transactionsMap
+  getShareMap transactionPrompt defaultFolder parseTransactionsFromString
 
 getShareMap ::
      (FromRecord a)
@@ -70,7 +69,7 @@ getAccountSummaries baseFolder = do
   accountSummaryFolder <-
     questionWithDefault accountSummaryPrompt defaultAccountSummaryFolder
   accountSummaryFiles <- listFilesInFolder accountSummaryFolder
-  accountSummaryContents <- sequence $ map readFile accountSummaryFiles
+  accountSummaryContents <- mapM readFile accountSummaryFiles
   return $ map parseAccountSummary accountSummaryContents
 
 main :: IO ()
@@ -84,10 +83,12 @@ main = do
   accountSummaries <- getAccountSummaries baseFolder
   putStrLn $ concatMap ((++ "\n\n") . show) accountSummaries
   let shareTransactions = M.toList transactionsMap
-  let divs = \s -> M.findWithDefault [] s dividendsMap
+  let divs s = M.findWithDefault [] s dividendsMap
   let shareTransactionDividends =
-        map (\(s, ts) -> (s, filter (\t -> (fromIntegral (sharesBought t)) /= 0 ) ts, divs s)) shareTransactions
-  let as = head accountSummaries
+        map (\(s, ts) -> (s, filter (\t -> fromIntegral (sharesBought t) /= 0 ) ts, divs s)) shareTransactions
+  let as = last accountSummaries
+  let accountSummaryDate = date as
+  putStrLn $ "data from: " ++ showGregorian accountSummaryDate
   let tableHeaders = T.empty ^..^ col "Price Profit" [] ^|^ col "Dividend Profit" [] ^|^ col "Total Profit" []
   let tableData = foldl (tabD as) tableHeaders shareTransactionDividends
   putStrLn $ render id id id tableData
@@ -101,7 +102,7 @@ tabD as table (s, t:ts, ds) =
       Just sh -> table +.+ row s [ showR (priceProfit sh), showR dividendProfit, showR (totalProfit sh)]
   where
     dividendProfit = transactionDividendProfit t as ds
-    priceProfit sh = transactionPriceProfit t sh
+    priceProfit = transactionPriceProfit t
     totalProfit sh = dividendProfit + priceProfit sh
     showR d = show (toTwoDp d)
 
@@ -109,8 +110,8 @@ tabD as table (s, t:ts, ds) =
 transactionPriceProfit :: Transaction -> ShareHolding -> Double
 transactionPriceProfit t s =
   let numBought = fromInteger $ fromIntegral $ sharesBought t
-      costPerShare = (cost t) / numBought
-      pricePerShare = (holdingValue s) / (unitsHeld s)
+      costPerShare = cost t / numBought
+      pricePerShare = holdingValue s / unitsHeld s
       profitPerShare = pricePerShare - costPerShare
   in
   numBought * profitPerShare
@@ -120,8 +121,9 @@ transactionDividendProfit ::
      Transaction -> AccountSummary -> [Dividend] -> Double
 transactionDividendProfit t as ds = sum $ filter inDateRange ds
   where
-    sum = foldl (\v d -> v + amount d) 0
-    inDateRange = (\d -> (paidOn d) > (actionedOn t) && (paidOn d) < (date as))
+    sum = foldl (\v d -> v + divAmount t d) 0
+    divAmount t d = fromIntegral (sharesBought t) * amount d / 100
+    inDateRange d = paidOn d > actionedOn t && paidOn d < date as
 
 {-
  - for each transaction, get all the dividends for that transaction
@@ -137,11 +139,11 @@ transactionDividendProfit t as ds = sum $ filter inDateRange ds
  -}
 -- | returns a string representation of a map from Share to an array of type 'a'
 showShareMap :: (Show a) => M.Map String [a] -> String
-showShareMap as = foldrWithKey entryToString "" as
+showShareMap = foldrWithKey entryToString ""
   where
     entryToString share as acc = acc ++ shareTitle share ++ showValues as
     shareTitle share = "values for " ++ share ++ "\n"
-    showValues as = concatMap ((++ "\n") . show) as
+    showValues = concatMap ((++ "\n") . show)
 
 {-
  - Takes a question to ask the user i.e "please provide a folder", and a default value.

@@ -13,8 +13,8 @@ module Lib
     ) where
 import           Data.Map           as M (Map (..), elems, lookup, mapWithKey)
 import           Data.Time.Calendar (Day (..))
-import           Hl.Csv.Dividend    (Dividend (..))
-import           Hl.Csv.Transaction (Transaction (..), numberHeld)
+import           Hl.Csv.Model       (Dividend (..), Transaction (..),
+                                     numberHeld)
 import           Utils              (delta, (~=))
 
 

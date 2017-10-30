@@ -4,20 +4,21 @@ module ParseCsv
   , decodeCsv
   ) where
 
-import Control.Monad (mzero)
-import qualified Data.ByteString.Lazy as B (ByteString)
-import Data.Csv
-       (FromRecord(parseRecord), HasHeader(NoHeader), Parser, Record,
-        (.!), decode)
-import Data.Either.Combinators (fromRight)
-import Data.List (drop, isPrefixOf, null, stripPrefix, takeWhile)
-import Data.Map as M (Map, empty, union)
-import Data.Time.Calendar (Day)
-import Data.Time.Format (defaultTimeLocale, parseTimeOrError)
-import Data.Vector (Vector, toList)
-import Data.Vector as V (empty)
-import Utils
-       (parseDate, stripWhitespace, toFiveDp, toLazyByteString)
+import           Control.Monad           (mzero)
+import qualified Data.ByteString.Lazy    as B (ByteString)
+import           Data.Csv                (FromRecord (parseRecord),
+                                          HasHeader (NoHeader), Parser, Record,
+                                          decode, (.!))
+import           Data.Either.Combinators (fromRight)
+import           Data.List               (drop, isPrefixOf, null, stripPrefix,
+                                          takeWhile)
+import           Data.Map                as M (Map, empty, union)
+import           Data.Time.Calendar      (Day)
+import           Data.Time.Format        (defaultTimeLocale, parseTimeOrError)
+import           Data.Vector             (Vector, toList)
+import           Data.Vector             as V (empty)
+import           Utils                   (parseDate, stripWhitespace, toFiveDp,
+                                          toLazyByteString)
 
 getShareName :: String -> Maybe String
 getShareName s

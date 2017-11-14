@@ -15,7 +15,6 @@ import           Hl.Csv.Model          (AccountSummary, Dividend, ShareHolding,
                                         parseAccountSummary,
                                         parseDividendsFromString,
                                         parseTransactionsFromString, unitsHeld)
-import           Lib                   (createHoldings)
 import           ParseCsv              (buildMap, getShareName)
 import           System.Directory      (getHomeDirectory, listDirectory)
 import           System.FilePath       (combine)
@@ -89,17 +88,23 @@ main = do
   let as = last accountSummaries
   let accountSummaryDate = date as
   putStrLn $ "data from: " ++ showGregorian accountSummaryDate
-  let tableHeaders = T.empty ^..^ col "Price Profit" [] ^|^ col "Dividend Profit" [] ^|^ col "Total Profit" []
+  -- tableHeaders is actually a table. There is a leftmost column that isn't described here.
+  -- The library makes it difficult not to have that column. In this case, we'll use it for the name of the share/transaction
+  let tableHeaders = T.empty ^..^ col "Transaction Date" [] ^|^ col "Cost" [] ^|^ col "Price Profit" [] ^|^ col "Dividend Profit" [] ^|^ col "Total Profit" []
+  -- use the tabD function to append rows to the tableHeaders "table".
   let tableData = foldl (tabD as) tableHeaders shareTransactionDividends
   putStrLn $ render id id id tableData
 
-tabD :: AccountSummary -> Table String ch String -> (String, [Transaction], [Dividend]) -> Table String ch String
+type ShareName = String
+
+-- Takes a table and the data about a particular share and appends rows to the table.
+tabD :: AccountSummary -> Table String ch String -> (ShareName, [Transaction], [Dividend]) -> Table String ch String
 tabD as table (s, [], ds) = table
 tabD as table (s, t:ts, ds) =
   let mshareHolding = findShareHolding s as
   in case mshareHolding of
       Nothing -> table
-      Just sh -> table +.+ row s [ showR (priceProfit sh), showR dividendProfit, showR (totalProfit sh)]
+      Just sh -> table +.+ row s [ (show . actionedOn) t, (show . cost) t, showR (priceProfit sh), showR dividendProfit, showR (totalProfit sh)]
   where
     dividendProfit = transactionDividendProfit t as ds
     priceProfit = transactionPriceProfit t

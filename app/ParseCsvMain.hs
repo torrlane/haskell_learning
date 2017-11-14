@@ -14,7 +14,8 @@ import           Hl.Csv.Model          (AccountSummary, Dividend, ShareHolding,
                                         findShareHolding, holdingValue, paidOn,
                                         parseAccountSummary,
                                         parseDividendsFromString,
-                                        parseTransactionsFromString, unitsHeld)
+                                        parseTransactionsFromString, transactionDividendProfit,
+                                        transactionPriceProfit, unitsHeld)
 import           ParseCsv              (buildMap, getShareName)
 import           System.Directory      (getHomeDirectory, listDirectory)
 import           System.FilePath       (combine)
@@ -97,38 +98,22 @@ main = do
 
 type ShareName = String
 
--- Takes a table and the data about a particular share and appends rows to the table.
+-- Takes a table and the data about a particular share and appends rows to the table. One row for each Transaction
 tabD :: AccountSummary -> Table String ch String -> (ShareName, [Transaction], [Dividend]) -> Table String ch String
 tabD as table (s, [], ds) = table
 tabD as table (s, t:ts, ds) =
   let mshareHolding = findShareHolding s as
   in case mshareHolding of
       Nothing -> table
-      Just sh -> table +.+ row s [ (show . actionedOn) t, (show . cost) t, showR (priceProfit sh), showR dividendProfit, showR (totalProfit sh)]
+      Just sh -> foldl (\tab t -> tab +.+ createRow s sh t) table (t:ts)
   where
-    dividendProfit = transactionDividendProfit t as ds
-    priceProfit = transactionPriceProfit t
-    totalProfit sh = dividendProfit + priceProfit sh
+    dividendProfit t = transactionDividendProfit t as ds
+    priceProfit t = transactionPriceProfit t
+    totalProfit t sh = (dividendProfit t) + (priceProfit t sh)
     showR d = show (toTwoDp d)
+    createRow s sh t = row s [ (show . actionedOn) t, (show . cost) t, showR (priceProfit t sh), showR (dividendProfit t), showR (totalProfit t sh)]
 
--- | Calculate the profit from the transaction based purely on the share price change
-transactionPriceProfit :: Transaction -> ShareHolding -> Double
-transactionPriceProfit t s =
-  let numBought = fromInteger $ fromIntegral $ sharesBought t
-      costPerShare = cost t / numBought
-      pricePerShare = holdingValue s / unitsHeld s
-      profitPerShare = pricePerShare - costPerShare
-  in
-  numBought * profitPerShare
 
--- | Calculate the profit from the Dividends for the transaction.
-transactionDividendProfit ::
-     Transaction -> AccountSummary -> [Dividend] -> Double
-transactionDividendProfit t as ds = sum $ filter inDateRange ds
-  where
-    sum = foldl (\v d -> v + divAmount t d) 0
-    divAmount t d = fromIntegral (sharesBought t) * amount d / 100
-    inDateRange d = paidOn d > actionedOn t && paidOn d < date as
 
 {-
  - for each transaction, get all the dividends for that transaction

@@ -9,7 +9,9 @@ module Hl.Csv.Model
     numberHeld,
     parseAccountSummary,
     parseDividendsFromString,
-    parseTransactionsFromString
+    parseTransactionsFromString,
+    transactionDividendProfit,
+    transactionPriceProfit
     )
 where
 import           Control.Monad           (mzero)
@@ -51,6 +53,25 @@ data Dividend = Dividend
 -- equals doesn't work well for Doubles. Make Dividend an instance of Eq and use a small error when comparing the Dividend amounts
 instance Eq Dividend where
   a == b = paidOn a == paidOn b && amount a ~= amount b
+
+-- | Calculate the profit from the transaction (in pounds) based purely on the share price change
+transactionPriceProfit :: Transaction -> ShareHolding -> Double
+transactionPriceProfit t s =
+  let numBought = fromInteger $ fromIntegral $ sharesBought t
+      costPerShare = cost t / numBought
+      pricePerShare = holdingValue s / unitsHeld s
+      profitPerShare = pricePerShare - costPerShare
+  in
+  numBought * profitPerShare
+
+-- | Calculate the profit from the Dividends for the transaction (in pounds).
+transactionDividendProfit ::
+     Transaction -> AccountSummary -> [Dividend] -> Double
+transactionDividendProfit t as ds = sum $ filter inDateRange ds
+  where
+    sum = foldl (\v d -> v + divAmount t d) 0
+    divAmount t d = fromIntegral (sharesBought t) * amount d / 100
+    inDateRange d = paidOn d > actionedOn t && paidOn d < date as
 
 parseTransactions :: String -> [Transaction]
 parseTransactions str =

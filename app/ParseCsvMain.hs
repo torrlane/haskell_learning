@@ -14,7 +14,9 @@ import           Hl.Csv.Model          (AccountSummary, Dividend, ShareHolding,
                                         findShareHolding, holdingValue, paidOn,
                                         parseAccountSummary,
                                         parseDividendsFromString,
-                                        parseTransactionsFromString, transactionDividendProfit,
+                                        parseTransactionsFromString,
+                                        totalProfit,
+                                        transactionDividendProfit,
                                         transactionPriceProfit, unitsHeld)
 import           ParseCsv              (buildMap, getShareName)
 import           System.Directory      (getHomeDirectory, listDirectory)
@@ -107,14 +109,14 @@ tabD as table (s, t:ts, ds) =
       Nothing -> table
       Just sh -> foldl (\tab t -> tab +.+ createRow s sh t) table (t:ts)
   where
-    dividendProfit t = transactionDividendProfit t as ds
-    priceProfit t = transactionPriceProfit t
-    totalProfit t sh = (dividendProfit t) + (priceProfit t sh)
+    dividendProfit t = transactionDividendProfit t (date as) ds
+    priceProfit = transactionPriceProfit
+    tp sh = totalProfit t sh ds (date as)
     showR d = show (toTwoDp d)
     daysHeld t = diffDays (date as) (actionedOn t)
-    yearsHeld t = (fromIntegral (daysHeld t)) / (365::Double)
-    annualisedPercent t sh = (\d -> 100 * (d-1)) $ (flip (**)) (1/(yearsHeld t)) $ ((cost t) + (totalProfit t sh)) / (cost t)
-    createRow s sh t = row s [ (show . actionedOn) t, (show . cost) t, showR (priceProfit t sh), showR (dividendProfit t), showR (totalProfit t sh), showR (100 * (totalProfit t sh) / (cost t)), showR (annualisedPercent t sh)]
+    yearsHeld t = fromIntegral (daysHeld t) / (365::Double)
+    annualisedPercent t sh = (\d -> 100 * (d-1)) $ flip (**) (1/yearsHeld t) $ (cost t + tp sh) / cost t
+    createRow s sh t = row s [ (show . actionedOn) t, (show . cost) t, showR (priceProfit t sh), showR (dividendProfit t), showR (tp sh), showR (100 * tp sh / cost t), showR (annualisedPercent t sh)]
 
 
 

@@ -10,6 +10,7 @@ module Hl.Csv.Model
     parseAccountSummary,
     parseDividendsFromString,
     parseTransactionsFromString,
+    totalProfit,
     transactionDividendProfit,
     transactionPriceProfit
     )
@@ -28,8 +29,6 @@ import           Utils                   (listFilesInFolder, parseDate,
                                           parseDateWithFormat, parseDouble,
                                           parseInt, stripDoubleQuotes, toFiveDp,
                                           (~=))
-
-
 
 {-
  - cost is the total cost of the Transaction, not the individual cost per unit
@@ -64,14 +63,18 @@ transactionPriceProfit t s =
   in
   numBought * profitPerShare
 
--- | Calculate the profit from the Dividends for the transaction (in pounds).
+-- | The total profit from the transaction (dividends and price profit) up to end date
+totalProfit :: Transaction -> ShareHolding -> [Dividend] -> Day -> Double
+totalProfit t sh ds end = transactionDividendProfit t end ds + transactionPriceProfit t sh
+
+-- | Calculate the profit from the Dividends (up to end date) for the transaction (in pounds).
 transactionDividendProfit ::
-     Transaction -> AccountSummary -> [Dividend] -> Double
-transactionDividendProfit t as ds = sum $ filter inDateRange ds
+     Transaction -> Day -> [Dividend] -> Double
+transactionDividendProfit t end ds = sum $ filter inDateRange ds
   where
     sum = foldl (\v d -> v + divAmount t d) 0
     divAmount t d = fromIntegral (sharesBought t) * amount d / 100
-    inDateRange d = paidOn d > actionedOn t && paidOn d < date as
+    inDateRange d = paidOn d > actionedOn t && paidOn d < end
 
 parseTransactions :: String -> [Transaction]
 parseTransactions str =

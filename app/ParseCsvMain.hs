@@ -7,7 +7,7 @@ import           Data.List             (concatMap, dropWhile, dropWhileEnd,
 import           Data.Map              as M (Map, empty, findWithDefault,
                                              foldrWithKey, fromList, keys,
                                              toList, union)
-import           Data.Time.Calendar    (showGregorian)
+import           Data.Time.Calendar    (diffDays, showGregorian)
 import           Hl.Csv.Model          (AccountSummary, Dividend, ShareHolding,
                                         Transaction (cost, sharesBought),
                                         actionedOn, amount, date,
@@ -91,7 +91,7 @@ main = do
   putStrLn $ "data from: " ++ showGregorian accountSummaryDate
   -- tableHeaders is actually a table. There is a leftmost column that isn't described here.
   -- The library makes it difficult not to have that column. In this case, we'll use it for the name of the share/transaction
-  let tableHeaders = T.empty ^..^ col "Transaction Date" [] ^|^ col "Cost" [] ^|^ col "Price Profit" [] ^|^ col "Dividend Profit" [] ^|^ col "Total Profit" []
+  let tableHeaders = T.empty ^..^ col "Transaction Date" [] ^|^ col "Cost" [] ^|^ col "Price Profit" [] ^|^ col "Dividend Profit" [] ^|^ col "Total Profit" [] ^|^ col "Total % Profit" [] ^|^ col "Annualised %" []
   -- use the tabD function to append rows to the tableHeaders "table".
   let tableData = foldl (tabD as) tableHeaders shareTransactionDividends
   putStrLn $ render id id id tableData
@@ -111,7 +111,10 @@ tabD as table (s, t:ts, ds) =
     priceProfit t = transactionPriceProfit t
     totalProfit t sh = (dividendProfit t) + (priceProfit t sh)
     showR d = show (toTwoDp d)
-    createRow s sh t = row s [ (show . actionedOn) t, (show . cost) t, showR (priceProfit t sh), showR (dividendProfit t), showR (totalProfit t sh)]
+    daysHeld t = diffDays (date as) (actionedOn t)
+    yearsHeld t = (fromIntegral (daysHeld t)) / (365::Double)
+    annualisedPercent t sh = (\d -> 100 * (d-1)) $ (flip (**)) (1/(yearsHeld t)) $ ((cost t) + (totalProfit t sh)) / (cost t)
+    createRow s sh t = row s [ (show . actionedOn) t, (show . cost) t, showR (priceProfit t sh), showR (dividendProfit t), showR (totalProfit t sh), showR (100 * (totalProfit t sh) / (cost t)), showR (annualisedPercent t sh)]
 
 
 

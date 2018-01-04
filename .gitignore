@@ -20,4 +20,5 @@ cabal.project.local
 .HTF/
 *.swp
 security_movements.csv
-
+.idea/
+learning.iml

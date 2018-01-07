@@ -30,6 +30,7 @@ import           Utils                   (listFilesInFolder, parseDate,
                                           parseInt, stripDoubleQuotes, toFiveDp,
                                           (~=))
 
+
 {-
  - cost is the total cost of the Transaction, not the individual cost per unit
  - -}
@@ -52,6 +53,7 @@ data Dividend = Dividend
 -- equals doesn't work well for Doubles. Make Dividend an instance of Eq and use a small error when comparing the Dividend amounts
 instance Eq Dividend where
   a == b = paidOn a == paidOn b && amount a ~= amount b
+
 
 -- | Calculate the profit from the transaction (in pounds) based purely on the share price change
 transactionPriceProfit :: Transaction -> ShareHolding -> Double

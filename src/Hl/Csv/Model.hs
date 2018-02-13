@@ -4,15 +4,15 @@ module Hl.Csv.Model
     Dividend(Dividend, paidOn, amount),
     AccountSummary(date),
     ShareHolding(ShareHolding, shareName, unitsHeld, sharePrice),
+    dividendProfit,
     findShareHolding,
     holdingValue,
     numberHeld,
     parseAccountSummary,
     parseDividendsFromString,
     parseTransactionsFromString,
-    totalProfit,
-    transactionDividendProfit,
-    transactionPriceProfit
+    priceProfit,
+    totalProfit
     )
 where
 import           Control.Monad           (mzero)
@@ -56,8 +56,8 @@ instance Eq Dividend where
 
 
 -- | Calculate the profit from the transaction (in pounds) based purely on the share price change
-transactionPriceProfit :: Transaction -> ShareHolding -> Double
-transactionPriceProfit t s =
+priceProfit :: Transaction -> ShareHolding -> Double
+priceProfit t s =
   let numBought = fromInteger $ fromIntegral $ sharesBought t
       costPerShare = cost t / numBought
       pricePerShare = holdingValue s / unitsHeld s
@@ -67,12 +67,12 @@ transactionPriceProfit t s =
 
 -- | The total profit from the transaction (dividends and price profit) up to end date
 totalProfit :: Transaction -> ShareHolding -> [Dividend] -> Day -> Double
-totalProfit t sh ds end = transactionDividendProfit t end ds + transactionPriceProfit t sh
+totalProfit t sh ds end = dividendProfit t end ds + priceProfit t sh
 
 -- | Calculate the profit from the Dividends (up to end date) for the transaction (in pounds).
-transactionDividendProfit ::
+dividendProfit ::
      Transaction -> Day -> [Dividend] -> Double
-transactionDividendProfit t end ds = sum $ filter inDateRange ds
+dividendProfit t end ds = sum $ filter inDateRange ds
   where
     sum = foldl (\v d -> v + divAmount t d) 0
     divAmount t d = fromIntegral (sharesBought t) * amount d / 100

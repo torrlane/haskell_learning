@@ -8,16 +8,15 @@ import           Hl.Csv.Account        (Account (accountSummaries, dividendsMap,
                                         loadAccount)
 import           Hl.Csv.Model          (AccountSummary, Dividend, ShareHolding,
                                         Transaction (cost, sharesBought),
-                                        actionedOn, amount, date,
-                                        findShareHolding, holdingValue, paidOn,
+                                        actionedOn, date,
+                                        findShareHolding, paidOn,
                                         dividendProfit,
-                                        priceProfit, unitsHeld)
+                                        priceProfit)
 import           System.IO             (putStrLn)
-import           Text.Tabular          as T (Table, col, empty, row, (+----+),
-                                             (+.+), (^..^), (^|^), (^||^))
+import           Text.Tabular          as T (Table, col, empty, row,
+                                             (+.+), (^..^), (^|^))
 import           Text.Tabular.AsciiArt (render)
-import           Utils                 (defaultWhenNull, stripWhitespace,
-                                        toTwoDp)
+import           Utils                 (toTwoDp)
 
 main :: IO ()
 main = do
@@ -68,7 +67,7 @@ createTable cols account shareTransactionDividends = do
   foldl (createRow cols ) headers shareTransactionDividends
   where
     createRow :: [TableColumn] -> Table String ch String -> (ShareName, [Transaction], [Dividend]) -> Table String ch String
-    createRow cols table (s, ts, _) = foldl (\tab t -> tab +.+ row s (values t)) table ts
+    createRow cols table (s, ts, ds) = foldl (\tab t -> tab +.+ row s (values t)) table ts
       where
         values t = map (\c -> columnValue c (s, t, ds)) cols
 

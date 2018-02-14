@@ -6,7 +6,6 @@ module Hl.Csv.Model
     ShareHolding(ShareHolding, shareName, unitsHeld, sharePrice),
     dividendProfit,
     findShareHolding,
-    holdingValue,
     numberHeld,
     parseAccountSummary,
     parseDividendsFromString,
@@ -16,20 +15,20 @@ module Hl.Csv.Model
     )
 where
 import           Control.Monad           (mzero)
-import           Data.Csv                (FromRecord (parseRecord), Parser,
+import           Data.Csv                (FromRecord (parseRecord),
+                                          HasHeader (NoHeader), Parser, decode,
                                           (.!))
 import           Data.Either.Combinators (fromRight)
 import           Data.List               (drop, find, isPrefixOf, length, lines,
                                           take, zip)
 import           Data.Map                as M (Map, empty, fromList)
 import           Data.Time.Calendar      (Day (..))
-import           Data.Vector             as V (empty, toList)
-import           ParseCsv                (decodeCsv, getShareName)
+import           Data.Vector             as V (Vector, empty, toList)
+import           ParseCsv                (getShareName)
 import           Utils                   (listFilesInFolder, parseDate,
                                           parseDateWithFormat, parseDouble,
                                           parseInt, stripDoubleQuotes, toFiveDp,
-                                          (~=))
-
+                                          toLazyByteString, (~=))
 
 {-
  - cost is the total cost of the Transaction, not the individual cost per unit
@@ -191,5 +190,14 @@ strip :: Parser String -> Parser String
 strip p = stripDoubleQuotes <$> p
 
 
+-- Takes a String, removes any header lines, and then parses the remaining lines into instances of Type a
+decodeCsv :: FromRecord a => Int -> String -> Either String (Vector a)
+decodeCsv h str =
+  decode NoHeader $ toLazyByteString . stripHeader h . stripFooter $ str
 
+-- Removes the header section from the transactions csv file, returning just the csv lines
+stripHeader :: Int -> String -> String
+stripHeader h = unlines . drop h . lines
 
+stripFooter :: String -> String
+stripFooter = unlines . takeWhile (not . isPrefixOf "\"Totals\"") . lines

@@ -8,13 +8,11 @@ import           Hl.Csv.Account        (Account (accountSummaries, dividendsMap,
                                         loadAccount)
 import           Hl.Csv.Model          (AccountSummary, Dividend, ShareHolding,
                                         Transaction (cost, sharesBought),
-                                        actionedOn, date,
-                                        findShareHolding, paidOn,
-                                        dividendProfit,
-                                        priceProfit)
+                                        actionedOn, date, dividendProfit,
+                                        findShareHolding, priceProfit)
 import           System.IO             (putStrLn)
-import           Text.Tabular          as T (Table, col, empty, row,
-                                             (+.+), (^..^), (^|^))
+import           Text.Tabular          as T (Table, col, empty, row, (+.+),
+                                             (^..^), (^|^))
 import           Text.Tabular.AsciiArt (render)
 import           Utils                 (toTwoDp)
 
@@ -44,7 +42,7 @@ priceProfitColumn as = ("Price Profit", toTwoDpF transactionPriceProfit as)
 dividendProfitColumn as = ("Dividend Profit", toTwoDpF transactionDividendProfit as)
 totalProfitColumn as = ("Total Profit", toTwoDpF totalProfit as )
 totalPercentProfitColumn as = ("Total % Profit", toTwoDpF totalPercentProfit as)
-annualisedPercentProfitColumn as = ("Total % Profit", toTwoDpF annualisedPercentProfit as)
+annualisedPercentProfitColumn as = ("Annual % Profit", toTwoDpF annualisedPercentProfit as)
 
 transactionPriceProfit as (s, t, _) = priceProfit t $ fromJust $ findShareHolding s as
 transactionDividendProfit as (_, t, ds) = dividendProfit t (date as) ds

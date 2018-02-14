@@ -12,13 +12,14 @@ import           Data.List.Split                (splitOn)
 import           Data.Time.Calendar             (fromGregorian)
 import           Hl.Csv.Model                   as M (Dividend (Dividend, amount, paidOn),
                                                       ShareHolding (ShareHolding, shareName, sharePrice, unitsHeld),
-                                                      Transaction (..))
+                                                      Transaction (..), dividendsPaidUpto )
 import           Test.Framework                 (Test, testGroup)
 import           Test.Framework.Providers.HUnit (testCase)
 import           Test.HUnit                     (Assertion, assertEqual)
 import           TestUtils                      (eitherParseRecordTest,
                                                  runParseRecordTest)
 import           Text.Heredoc                   (str)
+import           Utils                          (epoch)
 
 shareHoldingTests :: Test
 shareHoldingTests = testGroup "ShareHoldingTests" [
@@ -75,3 +76,53 @@ test_parse_transaction =
         expected = M.Transaction {M.actionedOn=expectedTransactionDate, M.sharesBought=1, M.cost=11}
     in
     assertEqual "" expected $ runParseRecordTest [csvTransactionDate, "_", "_", "_", "1.00", "11"]
+
+
+
+
+parseCsvTests :: Test
+parseCsvTests = testGroup "parseCsvTests" [
+--        testCase "testEmptyDividendCalculation" testEmptyDividendCalculation,
+--        testCase "testDividendCalculation" testDividendCalculation,
+--        testCase "testParseHolding" testParseHolding,
+--        testCase "testCreateHoldings" testCreateHoldings,
+--        testCase "testParseShareHolding" testParseShareHolding
+        ]
+{-
+testParseShareHolding :: Assertion
+testParseShareHolding =
+    let csvContents = [str|HL Vantage SIPP, , , ,
+                          |Client Name:,Mr JoeBlogs, , ,
+                          |Client Number:, 1234678910, , ,
+                          |Spreadsheet created at,14-05-2017 01:38, , ,
+                          |
+                          |Stock value:,"12,345.67", , ,
+                          |Total cash:,"12,345.67", , ,
+                          |Amount available to invest:,"12,345.67", , ,
+                          |Total value:,"12,345.67", , ,
+                          |
+                          |Stock,Units held,Price (pence),Value (),Cost (),Gain/loss (),Gain/loss (%),Yield,Day change (pence),Day change (%),
+                          |"Aberdeen Asian Smaller Companies Investment Trust Ordinary 25p *1","192","1,032.00","1,981.44","2,012.36","-30.92","-1.54","1.02","4.50","0.44"
+                          |]
+        shareHolding = M.ShareHolding {M.shareName = "Aberdeen Asian Smaller Companies Investment Trust Ordinary 25p *1", M.unitsHeld = 192.0, M.sharePrice = 1032.0}
+    in
+    assertEqual "" [shareHolding] $ parseShareHoldings csvContents
+-}
+
+
+{-
+ - test dividendsPaidUpto returns 0 when no dividends are supplied
+ -}
+testEmptyDividendCalculation :: Assertion
+testEmptyDividendCalculation = assertEqual "" 0 $ M.dividendsPaidUpto undefined [] []
+
+testDividendCalculation :: Assertion
+testDividendCalculation =
+    let purchaseDate = epoch
+        dividendPaymentDate = epoch
+        transaction = M.Transaction{M.actionedOn=purchaseDate,M.sharesBought=8,M.cost=0}
+        dividend = M.Dividend{M.paidOn=dividendPaymentDate, M.amount=10}
+        expected = 80
+    in
+    assertEqual "" expected $ M.dividendsPaidUpto epoch [dividend] [transaction]
+

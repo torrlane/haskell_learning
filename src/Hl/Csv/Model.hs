@@ -4,6 +4,7 @@ module Hl.Csv.Model
     Dividend(Dividend, paidOn, amount),
     AccountSummary(date),
     ShareHolding(ShareHolding, shareName, unitsHeld, sharePrice),
+    dividendsPaidUpto,
     dividendProfit,
     findShareHolding,
     numberHeld,
@@ -76,6 +77,14 @@ dividendProfit t end ds = sum $ filter inDateRange ds
     sum = foldl (\v d -> v + divAmount t d) 0
     divAmount t d = fromIntegral (sharesBought t) * amount d / 100
     inDateRange d = paidOn d > actionedOn t && paidOn d < end
+
+{- Calculates the amount of dividends paid up to the specified date (inclusive) -}
+dividendsPaidUpto :: Day -> [Dividend] -> [Transaction] -> Double
+dividendsPaidUpto d ds ts = sum $ map (dividend_amount d) ds
+    where
+    dividend_amount day (Dividend paid_on amount)
+        | paid_on > day = 0
+        | otherwise = fromIntegral (numberHeld day ts) * amount
 
 parseTransactions :: String -> [Transaction]
 parseTransactions str =

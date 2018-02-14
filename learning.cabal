@@ -66,7 +66,7 @@ test-suite learning-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
-  other-modules:       Hl.Csv.ModelSpec, LibSpec, ParseCsvSpec, QuandlLookupSpec, TestUtils
+  other-modules:       Hl.Csv.ModelSpec, LibSpec, QuandlLookupSpec, TestUtils
   build-depends:       base
                      , aeson
                      , text

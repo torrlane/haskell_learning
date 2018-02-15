@@ -8,7 +8,8 @@
  -}
 module QuandlLookup
     (
-    someFunc
+    someFunc,
+    Valuation(..)
     ) where
 import           Control.Lens       ((^.))
 import           Data.Aeson         (FromJSON (..), Value (..), withArray,
@@ -16,9 +17,10 @@ import           Data.Aeson         (FromJSON (..), Value (..), withArray,
 import           Data.Time.Calendar (Day (..))
 import           Data.Time.Format   (defaultTimeLocale, parseTimeOrError)
 import qualified Data.Vector        as V (toList)
-import           Lib                (Valuation (..))
 import           Network.Wreq       (Response (..), asJSON, get, responseBody)
 
+
+data Valuation = Valuation {valuedOn :: Day, price :: Double} deriving (Show, Eq)
 
 instance FromJSON Valuation where
     parseJSON = withObject "valuation" $ \o -> do

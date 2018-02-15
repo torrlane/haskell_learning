@@ -6,7 +6,6 @@ where
 import           Data.Aeson                     (decode, parseJSON)
 import           Data.Aeson.Types               (parseMaybe)
 import           Data.Time.Calendar             (fromGregorian)
-import           Lib                            (Valuation (..))
 import           QuandlLookup
 import           Test.Framework                 (Test, defaultMain, testGroup)
 import           Test.Framework.Providers.HUnit (testCase)

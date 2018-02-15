@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib,QuandlLookup,ParseCsv,Utils, Hl.Csv.Model, Hl.Csv.Account
+  exposed-modules:     QuandlLookup,ParseCsv,Utils, Hl.Csv.Model, Hl.Csv.Account
   build-depends:       base >= 4.7 && < 5
                      , time 
                      , wreq

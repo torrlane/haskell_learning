@@ -21,7 +21,7 @@ main = do
   account <- loadAccount
   let shareTransactions = M.toList $ transactionsMap account
   let divs s = M.findWithDefault [] s $ dividendsMap account
-  -- shareTransactionDividends is a list of tuples (Share, [purchases], [transactions])
+  -- shareTransactionDividends is a list of tuples (Share, [purchases], [dividends])
   let shareTransactionDividends =
         map (\(s, ts) -> (s, filter (\t -> fromIntegral (sharesBought t) /= 0 ) ts, divs s)) shareTransactions
   let as = last $ accountSummaries account

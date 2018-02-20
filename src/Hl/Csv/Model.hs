@@ -7,6 +7,7 @@ module Hl.Csv.Model
     dividendsPaidUpto,
     dividendProfit,
     findShareHolding,
+    getShareName,
     numberHeld,
     parseAccountSummary,
     parseDividendsFromString,
@@ -20,15 +21,14 @@ import           Data.Csv                (FromRecord (parseRecord),
                                           HasHeader (NoHeader), Parser, decode,
                                           (.!))
 import           Data.Either.Combinators (fromRight)
-import           Data.List               (drop, find, isPrefixOf, length, lines,
+import           Data.List               (drop, find, isPrefixOf, length, lines, null,
                                           take, zip)
 import           Data.Map                as M (Map, empty, fromList)
 import           Data.Time.Calendar      (Day (..))
 import           Data.Vector             as V (Vector, empty, toList)
-import           ParseCsv                (getShareName)
 import           Utils                   (listFilesInFolder, parseDate,
                                           parseDateWithFormat, parseDouble,
-                                          parseInt, stripDoubleQuotes, toFiveDp,
+                                          parseInt, stripDoubleQuotes, stripWhitespace, toFiveDp,
                                           toLazyByteString, (~=))
 
 {-
@@ -210,3 +210,12 @@ stripHeader h = unlines . drop h . lines
 
 stripFooter :: String -> String
 stripFooter = unlines . takeWhile (not . isPrefixOf "\"Totals\"") . lines
+
+getShareName :: String -> Maybe String
+getShareName s
+  | null (shareName s) = Nothing
+  | otherwise = Just $ shareName s
+  where
+    shareName = stripWhitespace . takeWhile (',' /=) . tail . dropWhile (',' /=)
+
+

@@ -1,6 +1,6 @@
 module Utils
     (
-    stripWhitespace, toByteString, toLazyByteString, epoch, toFiveDp, toTwoDp, defaultWhenNull, parseInt, parseDouble, stripDoubleQuotes, (~=), delta, parseDate, listFilesInFolder, parseDateWithFormat
+    dQuote, stripWhitespace, toByteString, toLazyByteString, epoch, toFiveDp, toTwoDp, defaultWhenNull, parseInt, parseDouble, stripDoubleQuotes, (~=), delta, parseDate, listFilesInFolder, parseDateWithFormat
     )
 where
 import qualified Data.ByteString         as B (ByteString (..))
@@ -75,6 +75,9 @@ stripChar c =  filter (/= c)
 
 stripDoubleQuotes :: String -> String
 stripDoubleQuotes = stripChar '\"'
+
+dQuote :: String -> String
+dQuote s = "\"" ++ s ++ "\""
 
 {-
  - returns a list of all the files in the specified folder

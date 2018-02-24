@@ -19,7 +19,7 @@ import           Test.HUnit                     (Assertion, assertEqual)
 import           TestUtils                      (eitherParseRecordTest,
                                                  runParseRecordTest)
 import           Text.Heredoc                   (str)
-import           Utils                          (epoch)
+import           Utils                          (epoch, dQuote)
 
 shareHoldingTests :: Test
 shareHoldingTests = testGroup "ShareHoldingTests" [
@@ -32,10 +32,10 @@ shareHoldingTests = testGroup "ShareHoldingTests" [
 
 testParseShareHolding2 :: Assertion
 testParseShareHolding2 =
-    let csvLine = [str|"Aberdeen Asian Smaller Companies Investment Trust Ordinary 25p *1","192","1,032.00","1,981.44","2,012.36","-30.92","-1.54","1.02","4.50","0.44"|]
-        expected = M.ShareHolding{M.shareName="Aberdeen Asian Smaller Companies Investment Trust Ordinary 25p *1", M.unitsHeld=192, M.sharePrice=1.0}
+    let csvLine = ["Aberdeen Asian Smaller Companies Investment Trust Ordinary 25p *1","192","1,032.00","1,981.44","2,012.36","-30.92","-1.54","1.02","4.50","0.44"]
+        expected = M.ShareHolding{M.shareName="Aberdeen Asian Smaller Companies Investment Trust Ordinary 25p *1", M.unitsHeld=192, M.sharePrice=1032}
     in
-    assertEqual "" (Right expected) $ eitherParseRecordTest $ splitOn "," csvLine
+    assertEqual "" (Right expected) $ eitherParseRecordTest $ map dQuote csvLine
 
 testParseShareHolding :: Assertion
 testParseShareHolding =

@@ -1,6 +1,8 @@
-module Hl.Csv.Account( Account(transactionsMap, dividendsMap, accountSummaries), loadAccount) where
+module Hl.Csv.Account( Account(transactionsMap, dividendsMap, accountSummaries), FileContent, ShareName, loadAccount) where
 import           Data.Csv         (FromRecord)
 import           Data.Map         as M (Map, empty, union)
+import           Data.Text        (Text)
+import           Data.Text.IO     as TIO (readFile)
 import           Hl.Csv.Model     (AccountSummary, Dividend, ShareHolding,
                                    Transaction, parseAccountSummary,
                                    parseDividendsFromString,
@@ -8,8 +10,8 @@ import           Hl.Csv.Model     (AccountSummary, Dividend, ShareHolding,
 import           System.Directory (getHomeDirectory, listDirectory)
 import           System.IO        (BufferMode (LineBuffering), hSetBuffering,
                                    putStrLn, stdout)
-import           Utils            (defaultWhenNull, listFilesInFolder,
-                                   stripWhitespace)
+import           Utils            (FileContent, ShareName, defaultWhenNull,
+                                   listFilesInFolder, stripWhitespace)
 
 -- Data is loaded from 3 directories - /Dividends, /Transactions and /AccountSummary
 -- Each file in the /Transaction folder should contain the sharename and that sharename should
@@ -18,14 +20,12 @@ import           Utils            (defaultWhenNull, listFilesInFolder,
 -- The files in the AccountSummary folder represent the state of the portfolio at a particular
 -- point in time (date is given in the file).
 data Account = Account
-  { transactionsMap  :: Map String [Transaction]
-  , dividendsMap     :: Map String [Dividend]
+  { transactionsMap  :: Map Text [Transaction]
+  , dividendsMap     :: Map Text [Dividend]
   , accountSummaries :: [AccountSummary]
   } deriving (Show, Eq)
 
-type ShareName = String
 type Question = String
-type FileContent = String
 
 loadAccount :: IO Account
 loadAccount = do
@@ -65,9 +65,8 @@ getShareMap ::
 getShareMap question defaultFolder parseFromString = do
   folder <- questionWithDefault question defaultFolder
   files <- listFilesInFolder folder
-  fileContents <- mapM readFile files
-  let map = buildMap parseFromString fileContents
-  return map
+  fileContents <- mapM TIO.readFile files
+  return $ buildMap parseFromString fileContents
 
 getAccountSummaries :: FilePath -> IO [AccountSummary]
 getAccountSummaries baseFolder = do
@@ -76,7 +75,7 @@ getAccountSummaries baseFolder = do
   accountSummaryFolder <-
     questionWithDefault accountSummaryPrompt defaultAccountSummaryFolder
   accountSummaryFiles <- listFilesInFolder accountSummaryFolder
-  accountSummaryContents <- mapM readFile accountSummaryFiles
+  accountSummaryContents <- mapM TIO.readFile accountSummaryFiles
   return $ map parseAccountSummary accountSummaryContents
 
 {-
@@ -94,9 +93,9 @@ questionWithDefault question dfault = do
 -- Takes a parser function and a list of fileContents and produces a map from the share name to the lists of the parsed values
 buildMap ::
      (FromRecord a)
-  => (String -> M.Map String [a])
-  -> [String]
-  -> M.Map String [a]
+  => (FileContent -> M.Map ShareName [a])
+  -> [FileContent]
+  -> M.Map ShareName [a]
 buildMap parseContent = foldl acc M.empty
   where
     acc currentMap content = union currentMap $ parseContent content

@@ -3,6 +3,7 @@ module ParseCsvMain where
 import           Data.List             (filter)
 import           Data.Map              as M (Map, findWithDefault, toList)
 import           Data.Maybe            (fromJust)
+import           Data.Text             (Text, unpack)
 import           Data.Time.Calendar    (diffDays, showGregorian)
 import           Hl.Csv.Account        (Account (accountSummaries, dividendsMap, transactionsMap),
                                         loadAccount)
@@ -31,7 +32,7 @@ main = do
   let tabData = createTable cols account shareTransactionDividends
   putStrLn $ render id id id tabData
 
-type ShareName = String
+type ShareName = Text
 type ColumnValue = (ShareName, Transaction, [Dividend]) -> String
 type TableColumn = (String, ColumnValue)
 columnName = fst
@@ -65,7 +66,7 @@ createTable cols account shareTransactionDividends = do
   foldl (createRow cols ) headers shareTransactionDividends
   where
     createRow :: [TableColumn] -> Table String ch String -> (ShareName, [Transaction], [Dividend]) -> Table String ch String
-    createRow cols table (s, ts, ds) = foldl (\tab t -> tab +.+ row s (values t)) table ts
+    createRow cols table (s, ts, ds) = foldl (\tab t -> tab +.+ row (unpack s) (values t)) table ts
       where
         values t = map (\c -> columnValue c (s, t, ds)) cols
 

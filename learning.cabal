@@ -59,6 +59,7 @@ executable parse-csv-exe
                      , containers
                      , learning
                      , tabular
+                     , text
                      , time
   default-language:    Haskell2010
 

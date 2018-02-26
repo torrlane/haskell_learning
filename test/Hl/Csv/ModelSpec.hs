@@ -1,4 +1,5 @@
-{-# LANGUAGE QuasiQuotes #-}
+
+{-# LANGUAGE OverloadedStrings #-}
 module Hl.Csv.ModelSpec
     (
     dividendTests,
@@ -9,17 +10,20 @@ module Hl.Csv.ModelSpec
 where
 
 import           Data.List.Split                (splitOn)
+import           Data.Text                      as T (append)
 import           Data.Time.Calendar             (fromGregorian)
 import           Hl.Csv.Model                   as M (Dividend (Dividend, amount, paidOn),
                                                       ShareHolding (ShareHolding, shareName, sharePrice, unitsHeld),
-                                                      Transaction (..), dividendsPaidUpto, getShareName )
+                                                      Transaction (..),
+                                                      dividendsPaidUpto,
+                                                      getShareName)
 import           Test.Framework                 (Test, testGroup)
 import           Test.Framework.Providers.HUnit (testCase)
 import           Test.HUnit                     (Assertion, assertEqual)
 import           TestUtils                      (eitherParseRecordTest,
                                                  runParseRecordTest)
 import           Text.Heredoc                   (str)
-import           Utils                          (epoch, dQuote)
+import           Utils                          (dQuote, epoch)
 
 shareHoldingTests :: Test
 shareHoldingTests = testGroup "ShareHoldingTests" [
@@ -41,9 +45,9 @@ testParseShareHolding :: Assertion
 testParseShareHolding =
     let expected = M.ShareHolding{M.shareName="name", M.unitsHeld=4, M.sharePrice=1.5}
         --Stock,Units held,Price (pence),Value (),Cost (),Gain/loss (),Gain/loss (%),Yield,Day change (pence),Day change (%),
-        csvLine = ["\"name\"","\"4\"","\"1.50\"","\"1,981.44\"","\"2,012.36\"","\"-30.92\"","\"-1.54\"","\"1.02\"","\"4.50\"","\"0.44\""]
+        csvLine = ["name","4","1.50","1,981.44","2,012.36","-30.92","-1.54","1.02","4.50","0.44"]
     in
-    assertEqual "" (Right expected) $ eitherParseRecordTest csvLine
+    assertEqual "" (Right expected) $ eitherParseRecordTest $ map dQuote csvLine
 
 dividendTests :: Test
 dividendTests = testGroup "dividendTests" [
@@ -134,21 +138,21 @@ testDividendCalculation =
 test_getShareName_from_csvLine_1 :: Assertion
 test_getShareName_from_csvLine_1 =
     let expected = "Henderson International Income Trust plc"
-        csvLine = "Income history for:, " ++ expected ++ ", Ord GBP0.01 , , ,"
+        csvLine = T.append "Income history for:, " $ T.append expected ", Ord GBP0.01 , , ,"
     in
     assertEqual "" (Just expected) $ getShareName csvLine
 
 test_getShareName_from_csvLine_2 :: Assertion
 test_getShareName_from_csvLine_2 =
     let expected = "Royal Dutch Shell Plc A Shares"
-        csvLine = "Income history for:, " ++ expected ++ ", EUR0.07 , , ,"
+        csvLine = T.append "Income history for:, " $ T.append expected ", EUR0.07 , , ,"
     in
     assertEqual "" (Just expected) $ getShareName csvLine
 
 test_getShareName_from_csvLine_3 :: Assertion
 test_getShareName_from_csvLine_3 =
     let expected = "Biotech Growth Trust (The)"
-        csvLine = "Security movements for:, " ++ expected ++ ", Ordinary 25p , , ,"
+        csvLine = T.append "Security movements for:, " $ T.append expected ", Ordinary 25p , , ,"
     in
     assertEqual "" (Just expected) $ getShareName csvLine
 

@@ -5,8 +5,9 @@ module TestUtils
     )
 where
 import           Data.Csv                (FromRecord (..), parseRecord, record,
-                                          runParser)
+                                          runParser, toField)
 import           Data.Either.Combinators (fromRight')
+import           Data.Text               (Text)
 import           Utils                   (toByteString)
 
 {-
@@ -18,6 +19,5 @@ runParseRecordTest xs = fromRight' . runParser . parseRecord . record $ fmap toB
 
 {- take a list of strings that when joined by ',' would form a line of a csv file and parse it into therequired FromRecord type
  -}
-eitherParseRecordTest :: FromRecord a => [String] -> Either String a
-eitherParseRecordTest xs = runParser . parseRecord . record $ fmap toByteString xs
-
+eitherParseRecordTest :: FromRecord a => [Text] -> Either String a
+eitherParseRecordTest = runParser . parseRecord . record . map toField

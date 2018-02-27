@@ -1,13 +1,12 @@
 module Utils
     (
-    ShareName, FileContent, convertToLazyByteString, dQuote, stripTextWhitespace, stripWhitespace, toByteString, toLazyByteString, epoch, toFiveDp, toTwoDp, defaultWhenNull, parseInt, parseDouble, stripDoubleQuotes, (~=), delta, parseDate, listFilesInFolder, parseDateWithFormat
+    ShareName, FileContent, convertToLazyByteString, dQuote, stripTextWhitespace, toByteString, epoch, toFiveDp, toTwoDp, defaultWhenNull, parseInt, parseDouble, stripDoubleQuotes, (~=), delta, parseDate, listFilesInFolder, parseDateWithFormat
     )
 where
 import qualified Data.ByteString         as B (ByteString (..), unpack)
 import qualified Data.ByteString.Builder as BB (stringUtf8, toLazyByteString)
 import qualified Data.ByteString.Lazy    as LZ (ByteString (..), pack, toStrict)
 import           Data.Char               (isSpace)
-import           Data.List               (dropWhileEnd)
 import qualified Data.Text               as T (Text, cons, dropWhile,
                                                dropWhileEnd, snoc, unpack)
 import qualified Data.Text.Lazy          as L (pack)
@@ -25,9 +24,6 @@ type FileContent = T.Text
  - Removes the whitespace from the start and end of the String.
  - Not particularly efficient so don't use it with long Strings.
  -}
-stripWhitespace :: String -> String
-stripWhitespace s = dropWhile isSpace $ dropWhileEnd isSpace s
-
 stripTextWhitespace :: T.Text -> T.Text
 stripTextWhitespace s = T.dropWhile isSpace $ T.dropWhileEnd isSpace s
 
@@ -44,11 +40,6 @@ delta = 0.000001
 toByteString :: String -> B.ByteString
 toByteString = LZ.toStrict . E.encodeUtf8 . L.pack
 
-{-
- - Convert a String to a Data.ByteString.Lazy.Internal.ByteString
- -}
-toLazyByteString :: String -> LZ.ByteString
-toLazyByteString = BB.toLazyByteString . BB.stringUtf8
 
 convertToLazyByteString :: B.ByteString -> LZ.ByteString
 convertToLazyByteString s = LZ.pack $ B.unpack s

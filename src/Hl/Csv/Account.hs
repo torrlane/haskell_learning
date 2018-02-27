@@ -1,5 +1,7 @@
 module Hl.Csv.Account( Account(transactionsMap, dividendsMap, accountSummaries), FileContent, ShareName, loadAccount) where
+import           Data.Char               (isSpace)
 import           Data.Csv         (FromRecord)
+import           Data.List               (dropWhileEnd)
 import           Data.Map         as M (Map, empty, union)
 import           Data.Text        (Text)
 import           Data.Text.IO     as TIO (readFile)
@@ -11,7 +13,7 @@ import           System.Directory (getHomeDirectory, listDirectory)
 import           System.IO        (BufferMode (LineBuffering), hSetBuffering,
                                    putStrLn, stdout)
 import           Utils            (FileContent, ShareName, defaultWhenNull,
-                                   listFilesInFolder, stripWhitespace)
+                                   listFilesInFolder)
 
 -- Data is loaded from 3 directories - /Dividends, /Transactions and /AccountSummary
 -- Each file in the /Transaction folder should contain the sharename and that sharename should
@@ -89,6 +91,8 @@ questionWithDefault question dfault = do
   let answer = stripWhitespace $ defaultWhenNull dfault input
   return answer
 
+stripWhitespace :: String -> String
+stripWhitespace s = dropWhile isSpace $ dropWhileEnd isSpace s
 
 -- Takes a parser function and a list of fileContents and produces a map from the share name to the lists of the parsed values
 buildMap ::

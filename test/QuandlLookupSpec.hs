@@ -3,6 +3,9 @@ module QuandlLookupSpec
     quandlLookupTests
     )
 where
+import qualified Data.ByteString         as B (ByteString)
+import qualified Data.ByteString.Builder as BB (stringUtf8, toLazyByteString)
+import qualified Data.ByteString.Lazy    as LZ (ByteString)
 import           Data.Aeson                     (decode, parseJSON)
 import           Data.Aeson.Types               (parseMaybe)
 import           Data.Time.Calendar             (fromGregorian)
@@ -10,7 +13,6 @@ import           QuandlLookup
 import           Test.Framework                 (Test, defaultMain, testGroup)
 import           Test.Framework.Providers.HUnit (testCase)
 import           Test.HUnit                     (Assertion, assertEqual)
-import           Utils                          (toLazyByteString)
 
 quandlLookupTests :: Test
 quandlLookupTests = testGroup "quandlLookupTests" [
@@ -63,3 +65,10 @@ now = fromGregorian 2016 10 05
  -}
 parse :: String -> Maybe Valuation
 parse s = parseMaybe parseJSON =<< decode (toLazyByteString s)
+
+
+{-
+ - Convert a String to a Data.ByteString.Lazy.Internal.ByteString
+ -}
+toLazyByteString :: String -> LZ.ByteString
+toLazyByteString = BB.toLazyByteString . BB.stringUtf8

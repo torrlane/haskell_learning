@@ -1,7 +1,7 @@
 module Hl.Csv.Account( Account(transactionsMap, dividendsMap, accountSummaries), FileContent, ShareName, loadAccount) where
-import           Data.Char               (isSpace)
+import           Data.Char        (isSpace)
 import           Data.Csv         (FromRecord)
-import           Data.List               (dropWhileEnd)
+import           Data.List        (dropWhileEnd)
 import           Data.Map         as M (Map, empty, union)
 import           Data.Text        (Text)
 import           Data.Text.IO     as TIO (readFile)

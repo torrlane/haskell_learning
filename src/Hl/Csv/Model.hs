@@ -37,8 +37,7 @@ import           Utils                   (FileContent, ShareName,
                                           listFilesInFolder, parseDate,
                                           parseDateWithFormat, parseDouble,
                                           parseInt, stripDoubleQuotes,
-                                          stripTextWhitespace,
-                                          toFiveDp, (~=))
+                                          stripTextWhitespace, toFiveDp, (~=))
 
 {-
  - cost is the total cost of the Transaction, not the individual cost per unit

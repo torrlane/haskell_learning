@@ -3,11 +3,12 @@ module QuandlLookupSpec
     quandlLookupTests
     )
 where
-import qualified Data.ByteString         as B (ByteString)
-import qualified Data.ByteString.Builder as BB (stringUtf8, toLazyByteString)
-import qualified Data.ByteString.Lazy    as LZ (ByteString)
 import           Data.Aeson                     (decode, parseJSON)
 import           Data.Aeson.Types               (parseMaybe)
+import qualified Data.ByteString                as B (ByteString)
+import qualified Data.ByteString.Builder        as BB (stringUtf8,
+                                                       toLazyByteString)
+import qualified Data.ByteString.Lazy           as LZ (ByteString)
 import           Data.Time.Calendar             (fromGregorian)
 import           QuandlLookup
 import           Test.Framework                 (Test, defaultMain, testGroup)

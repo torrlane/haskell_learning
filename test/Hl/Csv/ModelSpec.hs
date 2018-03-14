@@ -1,11 +1,11 @@
-
 {-# LANGUAGE OverloadedStrings #-}
 module Hl.Csv.ModelSpec
     (
     dividendTests,
     shareHoldingTests,
-    testParseShareHolding,
-    transactionTests
+    testParseShareHoldingRecord,
+    transactionTests,
+    parseCsvTests
     )
 where
 
@@ -27,11 +27,9 @@ import           Utils                          (dQuote, epoch)
 
 shareHoldingTests :: Test
 shareHoldingTests = testGroup "ShareHoldingTests" [
-    testCase "parseShareHolding" testParseShareHolding,
+    testCase "testParseShareHoldingRecord" testParseShareHoldingRecord,
     testCase "parseShareHolding2" testParseShareHolding2,
-    testCase "test_getShareName_from_csvLine_1" test_getShareName_from_csvLine_1,
-    testCase "test_getShareName_from_csvLine_2" test_getShareName_from_csvLine_2,
-    testCase "test_getShareName_from_csvLine_3" test_getShareName_from_csvLine_3
+    testCase "test_getShareName_from_csvLine" test_getShareName_from_csvLine
     ]
 
 testParseShareHolding2 :: Assertion
@@ -41,34 +39,47 @@ testParseShareHolding2 =
     in
     assertEqual "" (Right expected) $ eitherParseRecordTest $ map dQuote csvLine
 
-testParseShareHolding :: Assertion
-testParseShareHolding =
+-- Test that getShareName successfully extracts the share name from the csv line
+test_getShareName_from_csvLine :: Assertion
+test_getShareName_from_csvLine =
+    let expected1 = "Henderson International Income Trust plc"
+        expected2 = "Royal Dutch Shell Plc A Shares"
+        expected3 = "Biotech Growth Trust (The)"
+        csvLine1 = T.append "Income history for:, " $ T.append expected1 ", Ord GBP0.01 , , ,"
+        csvLine2 = T.append "Income history for:, " $ T.append expected2 ", EUR0.07 , , ,"
+        csvLine3 = T.append "Security movements for:, " $ T.append expected3 ", Ordinary 25p , , ,"
+    in
+    do
+      assertEqual "" (Just expected1) $ getShareName csvLine1
+      assertEqual "" (Just expected2) $ getShareName csvLine2
+      assertEqual "" (Just expected3) $ getShareName csvLine3
+
+testParseShareHoldingRecord :: Assertion
+testParseShareHoldingRecord =
     let expected = M.ShareHolding{M.shareName="name", M.unitsHeld=4, M.sharePrice=1.5}
         --Stock,Units held,Price (pence),Value (),Cost (),Gain/loss (),Gain/loss (%),Yield,Day change (pence),Day change (%),
         csvLine = ["name","4","1.50","1,981.44","2,012.36","-30.92","-1.54","1.02","4.50","0.44"]
     in
     assertEqual "" (Right expected) $ eitherParseRecordTest $ map dQuote csvLine
 
+
 dividendTests :: Test
 dividendTests = testGroup "dividendTests" [
-        testCase "testParseDividend" testParseDividend,
-        testCase "testParseBrwmDividend" testParseBrwmDividend
-        ]
+    testCase "testParseDividend" testParseDividend
+    ]
 
 testParseDividend :: Assertion
 testParseDividend =
-    let expected = M.Dividend{M.paidOn=fromGregorian 2016 12 07, M.amount=28.9}
-        csvLine = ["07/12/2016","ST DIV","share name","n/a","80.00","23.12"]
+    let expected1 = M.Dividend{M.paidOn=fromGregorian 2016 12 07, M.amount=28.9}
+        expected2 = M.Dividend{M.paidOn=fromGregorian 2016 12 07, M.amount=3}
+        csvLine1 = ["07/12/2016","ST DIV","share name","n/a","80.00","23.12"]
+        csvLine2 = ["07/12/2016","ST DIV","share name","n/a","826.00","24.78"]
     in
-    assertEqual "" expected $ runParseRecordTest csvLine
+    do
+    assertEqual "" expected1 $ runParseRecordTest csvLine1
+    assertEqual "" expected2 $ runParseRecordTest csvLine2
 
 
-testParseBrwmDividend :: Assertion
-testParseBrwmDividend =
-    let expected = M.Dividend{M.paidOn=fromGregorian 2016 12 07, M.amount=3}
-        csvLine = ["07/12/2016","ST DIV","share name","n/a","826.00","24.78"]
-    in
-    assertEqual "" expected $ runParseRecordTest csvLine
 
 
 transactionTests :: Test
@@ -89,15 +100,30 @@ test_parse_transaction =
 
 parseCsvTests :: Test
 parseCsvTests = testGroup "parseCsvTests" [
---        testCase "testEmptyDividendCalculation" testEmptyDividendCalculation,
---        testCase "testDividendCalculation" testDividendCalculation,
---        testCase "testParseHolding" testParseHolding,
---        testCase "testCreateHoldings" testCreateHoldings,
---        testCase "testParseShareHolding" testParseShareHolding
+        testCase "testEmptyDividendCalculation" testEmptyDividendCalculation,
+        testCase "testDividendCalculation" testDividendCalculation
         ]
+
 {-
-testParseShareHolding :: Assertion
-testParseShareHolding =
+ - test dividendsPaidUpto returns 0 when no dividends are supplied
+ -}
+testEmptyDividendCalculation :: Assertion
+testEmptyDividendCalculation = assertEqual "" 0 $ M.dividendsPaidUpto undefined [] []
+
+testDividendCalculation :: Assertion
+testDividendCalculation =
+    let purchaseDate = epoch
+        dividendPaymentDate = epoch
+        transaction = M.Transaction{M.actionedOn=purchaseDate,M.sharesBought=8,M.cost=0}
+        dividend = M.Dividend{M.paidOn=dividendPaymentDate, M.amount=10}
+        expected = 80
+    in
+    assertEqual "" expected $ M.dividendsPaidUpto epoch [dividend] [transaction]
+
+
+{-
+testParseShareHolding3 :: Assertion
+testParseShareHolding3 =
     let csvContents = [str|HL Vantage SIPP, , , ,
                           |Client Name:,Mr JoeBlogs, , ,
                           |Client Number:, 1234678910, , ,
@@ -117,42 +143,5 @@ testParseShareHolding =
 -}
 
 
-{-
- - test dividendsPaidUpto returns 0 when no dividends are supplied
- -}
-testEmptyDividendCalculation :: Assertion
-testEmptyDividendCalculation = assertEqual "" 0 $ M.dividendsPaidUpto undefined [] []
 
-testDividendCalculation :: Assertion
-testDividendCalculation =
-    let purchaseDate = epoch
-        dividendPaymentDate = epoch
-        transaction = M.Transaction{M.actionedOn=purchaseDate,M.sharesBought=8,M.cost=0}
-        dividend = M.Dividend{M.paidOn=dividendPaymentDate, M.amount=10}
-        expected = 80
-    in
-    assertEqual "" expected $ M.dividendsPaidUpto epoch [dividend] [transaction]
-
-
--- Test that getShareName successfully extracts the share name from the csv line
-test_getShareName_from_csvLine_1 :: Assertion
-test_getShareName_from_csvLine_1 =
-    let expected = "Henderson International Income Trust plc"
-        csvLine = T.append "Income history for:, " $ T.append expected ", Ord GBP0.01 , , ,"
-    in
-    assertEqual "" (Just expected) $ getShareName csvLine
-
-test_getShareName_from_csvLine_2 :: Assertion
-test_getShareName_from_csvLine_2 =
-    let expected = "Royal Dutch Shell Plc A Shares"
-        csvLine = T.append "Income history for:, " $ T.append expected ", EUR0.07 , , ,"
-    in
-    assertEqual "" (Just expected) $ getShareName csvLine
-
-test_getShareName_from_csvLine_3 :: Assertion
-test_getShareName_from_csvLine_3 =
-    let expected = "Biotech Growth Trust (The)"
-        csvLine = T.append "Security movements for:, " $ T.append expected ", Ordinary 25p , , ,"
-    in
-    assertEqual "" (Just expected) $ getShareName csvLine
 

@@ -11,6 +11,7 @@ module Hl.Csv.Model
     getShareName,
     numberHeld,
     parseAccountSummary,
+    parseShareHoldings,
     parseDividendsFromString,
     parseTransactionsFromString,
     priceProfit,

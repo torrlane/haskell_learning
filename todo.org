@@ -1,0 +1,28 @@
+* Haskell learning
+** TODO create new job to store share data in file
+*** data should come from Google spreadsheets (see finance functions)
+*** think about unit testing
+
+** TODO Change name of existing jobs to something better
+*** ParseCsvMain -> PrintPerformanceStats
+
+
+** TODO create a job to extract dividend data from hl website
+*** for example: https://www.hl.co.uk/shares/shares-search-results/l/lloyds-banking-group-plc-ordinary-10p/dividends
+*** Get content from website and write code to parse it and extract out relevant data.
+
+
+* Type ideas
+** Dividend
+*** Date
+*** number held
+*** amount per unit
+*** currency
+
+** Stock
+*** name
+*** sedol/ric/whatever
+
+** function :: Stock -> IO [Dividend]
+** function :: Fund -> IO [Dividend] 
+

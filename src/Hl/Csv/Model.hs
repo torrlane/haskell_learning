@@ -1,58 +1,87 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Hl.Csv.Model
-    (
-    Transaction(Transaction, actionedOn, sharesBought, cost),
-    Dividend(Dividend, paidOn, amount),
-    AccountSummary(date),
-    ShareHolding(ShareHolding, shareName, unitsHeld, sharePrice),
-    dividendsPaidUpto,
-    dividendProfit,
-    findShareHolding,
-    getShareName,
-    numberHeld,
-    parseAccountSummary,
-    parseShareHoldings,
-    parseDividendsFromString,
-    parseTransactionsFromString,
-    priceProfit,
-    totalProfit
-    )
-where
 
-import           Control.Monad           (mzero)
-import           Data.Csv                (FromRecord (parseRecord),
-                                          HasHeader (NoHeader), Parser, decode,
-                                          toField, (.!))
-import           Data.Either.Combinators (fromRight)
-import           Data.List               (drop, find, isPrefixOf, length, null,
-                                          take, zip)
-import           Data.Map                as M (Map, empty, fromList)
-import           Data.Text               (Text, pack, unpack)
-import qualified Data.Text               as T (append, drop, dropWhile, head,
-                                               isPrefixOf, length, lines, null,
-                                               tail, take, takeWhile, unlines)
-import           Data.Time.Calendar      (Day (..))
-import           Data.Vector             as V (Vector, empty, toList)
-import           Utils                   (FileContent, ShareName,
-                                          convertToLazyByteString,
-                                          listFilesInFolder, parseDate,
-                                          parseDateWithFormat, parseDouble,
-                                          parseInt, stripDoubleQuotes,
-                                          stripTextWhitespace, toFiveDp, (~=))
+module Hl.Csv.Model
+  ( Transaction(Transaction, actionedOn, sharesBought, cost)
+  , Dividend(Dividend, paidOn, amount)
+  , AccountSummary(date)
+  , ShareHolding(ShareHolding, shareName, unitsHeld, sharePrice)
+  , dividendsPaidUpto
+  , dividendProfit
+  , findShareHolding
+  , getShareName
+  , numberHeld
+  , parseAccountSummary
+  , parseShareHoldings
+  , parseDividendsFromString
+  , parseTransactionsFromString
+  , priceProfit
+  , totalProfit
+  ) where
+
+import Control.Monad (mzero)
+import Data.Csv
+  ( FromRecord(parseRecord)
+  , HasHeader(NoHeader)
+  , Parser
+  , (.!)
+  , decode
+  , toField
+  )
+import Data.Either (fromRight)
+import Data.List (drop, find, isPrefixOf, length, null, take, zip)
+import Data.Map as M (Map, empty, fromList)
+import Data.Text (Text, pack, unpack)
+import qualified Data.Text as T
+  ( append
+  , drop
+  , dropWhile
+  , head
+  , isPrefixOf
+  , length
+  , lines
+  , null
+  , tail
+  , take
+  , takeWhile
+  , unlines
+  )
+import Data.Time.Calendar (Day(..))
+import Data.Vector as V (Vector, empty, toList)
+import Utils
+  ( FileContent
+  , ShareName
+  , (~=)
+  , convertToLazyByteString
+  , listFilesInFolder
+  , parseDate
+  , parseDateWithFormat
+  , parseDouble
+  , parseInt
+  , stripDoubleQuotes
+  , stripTextWhitespace
+  , toFiveDp
+  )
 
 {-
  - cost is the total cost of the Transaction, not the individual cost per unit
  - -}
 data Transaction = Transaction
-  { actionedOn   :: Day
+  { actionedOn :: Day
   , sharesBought :: Int
-  , cost         :: Double
+  , cost :: Double
   } deriving (Read, Show, Eq)
 
-data AccountSummary = AccountSummary{ date :: Day, shareHoldings :: [ShareHolding]} deriving (Show, Eq)
+data AccountSummary = AccountSummary
+  { date :: Day
+  , shareHoldings :: [ShareHolding]
+  } deriving (Show, Eq)
 
 -- | contains details of how many of a particular share is held at a certain point in time, and the shareprice(in pence) at that time
-data ShareHolding = ShareHolding{ shareName :: Text, unitsHeld :: Double, sharePrice :: Double } deriving (Show, Eq)
+data ShareHolding = ShareHolding
+  { shareName :: Text
+  , unitsHeld :: Double
+  , sharePrice :: Double
+  } deriving (Show, Eq)
 
 data Dividend = Dividend
   { paidOn :: Day
@@ -63,7 +92,6 @@ data Dividend = Dividend
 instance Eq Dividend where
   a == b = paidOn a == paidOn b && amount a ~= amount b
 
-
 -- | Calculate the profit from the transaction (in pounds) based purely on the share price change
 priceProfit :: Transaction -> ShareHolding -> Double
 priceProfit t s =
@@ -71,16 +99,14 @@ priceProfit t s =
       costPerShare = cost t / numBought
       pricePerShare = holdingValue s / unitsHeld s
       profitPerShare = pricePerShare - costPerShare
-  in
-  numBought * profitPerShare
+   in numBought * profitPerShare
 
 -- | The total profit from the transaction (dividends and price profit) up to end date
 totalProfit :: Transaction -> ShareHolding -> [Dividend] -> Day -> Double
 totalProfit t sh ds end = dividendProfit t end ds + priceProfit t sh
 
 -- | Calculate the profit from the Dividends (up to end date) for the transaction (in pounds).
-dividendProfit ::
-     Transaction -> Day -> [Dividend] -> Double
+dividendProfit :: Transaction -> Day -> [Dividend] -> Double
 dividendProfit t end ds = sum $ filter inDateRange ds
   where
     sum = foldl (\v d -> v + divAmount t d) 0
@@ -90,10 +116,10 @@ dividendProfit t end ds = sum $ filter inDateRange ds
 {- Calculates the amount of dividends paid up to the specified date (inclusive) -}
 dividendsPaidUpto :: Day -> [Dividend] -> [Transaction] -> Double
 dividendsPaidUpto d ds ts = sum $ map (dividend_amount d) ds
-    where
+  where
     dividend_amount day (Dividend paid_on amount)
-        | paid_on > day = 0
-        | otherwise = fromIntegral (numberHeld day ts) * amount
+      | paid_on > day = 0
+      | otherwise = fromIntegral (numberHeld day ts) * amount
 
 parseTransactions :: FileContent -> [Transaction]
 parseTransactions str =
@@ -107,7 +133,7 @@ parseTransactionsFromString contents = mapMaybe shareName values
     contentLines = T.lines contents
     shareName = getShareName . head $ contentLines
     values = parseTransactions contents
-    mapMaybe Nothing v  = M.empty
+    mapMaybe Nothing v = M.empty
     mapMaybe (Just k) v = M.fromList [(k, v)]
 
 transactionHeader :: Int
@@ -133,11 +159,6 @@ numberHeld day ts = sum $ map calculateChangeToHolding ts
       | transaction_date > day = 0
       | otherwise = sharesBought
 
-
-
-
-
-
 parseDividends :: FileContent -> [Dividend]
 parseDividends str = V.toList $ fromRight V.empty $ decodeCsv dividendHeader str
 
@@ -148,7 +169,7 @@ parseDividendsFromString contents = mapMaybe shareName values
   where
     shareName = getShareName . head . T.lines $ contents
     values = parseDividends contents
-    mapMaybe Nothing v  = M.empty
+    mapMaybe Nothing v = M.empty
     mapMaybe (Just k) v = M.fromList [(k, v)]
 
 dividendHeader :: Int
@@ -164,45 +185,48 @@ instance FromRecord Dividend where
        ((/) <$> (v .! 5 :: Parser Double) <*> (v .! 4 :: Parser Double)))
     | otherwise = mzero
 
-
-
-
-
 -- | the total value of the holding (in pounds) e.g. sharePrice * unitsHeld / 100
 holdingValue :: ShareHolding -> Double
-holdingValue ShareHolding{unitsHeld=h, sharePrice=p} = (h * p)/100
+holdingValue ShareHolding {unitsHeld = h, sharePrice = p} = (h * p) / 100
 
 -- | takes a name of a share and an AccountSummary and returns the first ShareHolding
 -- where the name of the share in the ShareHolding is a prefix of the input String.
 -- This is because the HL AccountSummary adds stuff like "25 *1" to the shareName.
 findShareHolding :: Text -> AccountSummary -> Maybe ShareHolding
-findShareHolding share AccountSummary{shareHoldings=shs} = find (T.isPrefixOf share . shareName) shs
+findShareHolding share AccountSummary {shareHoldings = shs} =
+  find (T.isPrefixOf share . shareName) shs
 
 parseAccountSummary :: FileContent -> AccountSummary
-parseAccountSummary accountSummaryContents = AccountSummary{date=asDate, shareHoldings = holdings}
-  where asDate = getAccountSummaryDate accountSummaryContents
-        holdings = parseShareHoldings accountSummaryContents
+parseAccountSummary accountSummaryContents =
+  AccountSummary {date = asDate, shareHoldings = holdings}
+  where
+    asDate = getAccountSummaryDate accountSummaryContents
+    holdings = parseShareHoldings accountSummaryContents
 
 -- | takes the csv content of the accountSummary and extracts the date
 -- TODO - this returns the epoch date if there are problems with parsing. It should return an Either.
 getAccountSummaryDate :: FileContent -> Day
 getAccountSummaryDate content = parseDateWithFormat "%d-%m-%Y" unparsed
-    where prefix = "Spreadsheet created at,"
-          mapMaybe Nothing  = T.append prefix "01-01-1970"
-          mapMaybe (Just s) = s
-          line = mapMaybe $ find (T.isPrefixOf prefix ) (T.lines content)
-          unparsed = unpack $ T.take 10 $ T.drop (T.length prefix) line
+  where
+    prefix = "Spreadsheet created at,"
+    mapMaybe Nothing = T.append prefix "01-01-1970"
+    mapMaybe (Just s) = s
+    line = mapMaybe $ find (T.isPrefixOf prefix) (T.lines content)
+    unparsed = unpack $ T.take 10 $ T.drop (T.length prefix) line
 
 shareHoldingHeader :: Int
 shareHoldingHeader = 11
 
 parseShareHoldings :: FileContent -> [ShareHolding]
-parseShareHoldings str = V.toList $ fromRight V.empty $ decodeCsv shareHoldingHeader str
+parseShareHoldings str =
+  V.toList $ fromRight V.empty $ decodeCsv shareHoldingHeader str
 
 instance FromRecord ShareHolding where
-    parseRecord v
-        | length v >= 3 = ShareHolding <$> strip (v .! 0) <*> (parseDouble <$> strip (v .! 1)) <*> (parseDouble <$> strip (v .! 2))
-        | otherwise = mzero
+  parseRecord v
+    | length v >= 3 =
+      ShareHolding <$> strip (v .! 0) <*> (parseDouble <$> strip (v .! 1)) <*>
+      (parseDouble <$> strip (v .! 2))
+    | otherwise = mzero
 
 strip :: Parser Text -> Parser Text
 strip p = (pack . stripDoubleQuotes . unpack) <$> p
@@ -210,20 +234,21 @@ strip p = (pack . stripDoubleQuotes . unpack) <$> p
 -- Takes a String, removes any header lines, and then parses the remaining lines into instances of Type a
 decodeCsv :: FromRecord a => Int -> FileContent -> Either String (Vector a)
 decodeCsv h str =
-  decode NoHeader $ convertToLazyByteString . toField . stripHeader h . stripFooter $ str
+  decode NoHeader $
+  convertToLazyByteString . toField . stripHeader h . stripFooter $ str
 
 -- Removes the header section from the transactions csv file, returning just the csv lines
 stripHeader :: Int -> FileContent -> FileContent
 stripHeader h = T.unlines . drop h . T.lines
 
 stripFooter :: FileContent -> FileContent
-stripFooter = T.unlines . takeWhile (not . T.isPrefixOf (pack "\"Totals\"")) . T.lines
+stripFooter =
+  T.unlines . takeWhile (not . T.isPrefixOf (pack "\"Totals\"")) . T.lines
 
 getShareName :: FileContent -> Maybe ShareName
 getShareName s
   | T.null (shareName s) = Nothing
   | otherwise = Just $ shareName s
   where
-    shareName = stripTextWhitespace . T.takeWhile (',' /=) . T.tail . T.dropWhile (',' /=)
-
-
+    shareName =
+      stripTextWhitespace . T.takeWhile (',' /=) . T.tail . T.dropWhile (',' /=)

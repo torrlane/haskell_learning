@@ -1,11 +1,11 @@
 * Haskell learning
 ** TODO virtualbox view local folders
 ** TODO Document how to do it  (create doc folder in project)
-
-** TODO create new job to store share data in file
+** TODO create a job to download share data from Google spreadsheets 
+** TODO create new job to store that data in a file
 *** data should come from Google spreadsheets (see finance functions)
 *** think about unit testing
-
+** TODO create a job to read share data from file into object 
 ** TODO Change name of existing jobs to something better
 *** ParseCsvMain -> PrintPerformanceStats [[file:app/ParseCsvMain.hs][ParseCsvMain]]
 

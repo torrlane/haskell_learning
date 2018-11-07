@@ -1,30 +1,34 @@
 * Haskell learning
 ** TODO virtualbox view local folders
+** TODO Document how to do it  (create doc folder in project)
 
 ** TODO create new job to store share data in file
 *** data should come from Google spreadsheets (see finance functions)
 *** think about unit testing
 
 ** TODO Change name of existing jobs to something better
-*** ParseCsvMain -> PrintPerformanceStats
-
+*** ParseCsvMain -> PrintPerformanceStats [[file:app/ParseCsvMain.hs][ParseCsvMain]]
 
 ** TODO create a job to extract dividend data from hl website
-*** for example: https://www.hl.co.uk/shares/shares-search-results/l/lloyds-banking-group-plc-ordinary-10p/dividends
+*** for example:[[https://www.hl.co.uk/shares/shares-search-results/l/lloyds-banking-group-plc-ordinary-10p/dividends][ Lloyds Dividend information]] 
 *** Get content from website and write code to parse it and extract out relevant data.
 
 
 * Type ideas
-** Dividend
-*** Date
-*** number held
-*** amount per unit
-*** currency
 
-** Stock
-*** name
-*** sedol/ric/whatever
+#+BEGIN_SRC haskell
+  data Dividend = Dividend
+    { date     :: Day
+    , currency :: String
+    , amount   :: Double
+    }
 
-** function :: Stock -> IO [Dividend]
-** function :: Fund -> IO [Dividend] 
+  -- Both instances of "Security", but extract that class out later
+  data Stock = Stock {name :: String}
+  data Fund = Fund {name :: String}
+
+  -- start off with separate functions and then see if there is any commonality
+  stockDividends :: Stock -> [Dividend]
+  fundDividends :: Fund -> [Dividend]
+#+END_SRC
 

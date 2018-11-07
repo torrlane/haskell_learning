@@ -1,5 +1,6 @@
 * Haskell learning
 ** TODO virtualbox view local folders
+** TODO figure out how to push to github
 ** TODO Document how to do it  (create doc folder in project)
 ** TODO create a job to download share data from Google spreadsheets 
 ** TODO create new job to store that data in a file

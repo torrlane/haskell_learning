@@ -61,9 +61,7 @@ executable parse-csv-exe
                      , tabular
                      , text
                      , time
-                     
-
-, vector
+                     , vector
   default-language:    Haskell2010
 
 test-suite learning-test

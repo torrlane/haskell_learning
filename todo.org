@@ -1,7 +1,12 @@
 * Haskell learning
-** TODO virtualbox view local folders
+** DONE virtualbox view local folders
+   CLOSED: [2018-11-12 Mon 00:02]
+*** Devices | Shared Folders 
+*** Add a new shared folder. Folder name = "portfolios"
+*** This will create a new mount point in /media/sf_portfolios
+*** It should be accessible by all users in group "vboxsf".
+*** sudo adduser john vboxsf , to add john to vboxsf group.
 ** TODO figure out how to push to github
-** TODO Document how to do it  (create doc folder in project)
 ** TODO create a job to download share data from Google spreadsheets 
 ** TODO create new job to store that data in a file
 *** data should come from Google spreadsheets (see finance functions)

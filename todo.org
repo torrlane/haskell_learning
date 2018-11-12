@@ -11,10 +11,15 @@
    Use SPC g s to open a git status buffer. Then use s and u to stage and unstage files.
    SPC g m c c to open a commit message buffer, and C-c C-c to commit the changes.
    Finally, use SPC g m P u to push to origin/master
-** TODO create a job to download share data from Google spreadsheets 
 ** TODO create new job to store that data in a file
 *** data should come from Google spreadsheets (see finance functions)
 *** think about unit testing
+*** Create folder 'data'
+*** Add it to the .gitignore file
+*** One file per share - use simple numeric id as the name
+*** One quote per line in date order (oldest first). 
+*** Day value 
+** TODO create a job to download share data from Google spreadsheets 
 ** TODO create a job to read share data from file into object 
 ** TODO Change name of existing jobs to something better
 *** ParseCsvMain -> PrintPerformanceStats [[file:app/ParseCsvMain.hs][ParseCsvMain]]

@@ -7,7 +7,10 @@
    4) It should be accessible by all users in group "vboxsf".
    5) sudo adduser john vboxsf , to add john to vboxsf group.
 
-** TODO figure out how to push to github
+** How to push to github
+   Use SPC g s to open a git status buffer. Then use s and u to stage and unstage files.
+   SPC g m c c to open a commit message buffer, and C-c C-c to commit the changes.
+   Finally, use SPC g m P u to push to origin/master
 ** TODO create a job to download share data from Google spreadsheets 
 ** TODO create new job to store that data in a file
 *** data should come from Google spreadsheets (see finance functions)
